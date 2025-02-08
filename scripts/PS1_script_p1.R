@@ -3,22 +3,20 @@
 ## - Santiago Melo - Miguel Blanco - María Bernal - Diana Lopera - ##
 #-------------------------------------------------------------------#
 
-#-------------------------#
-## DATA
-#-------------------------#
+# Instalación / Librerías
+install.packages("chromote")
 
-#We will use data for Bogot´a from the 2018 “Medici´on de Pobreza Monetaria
-#y Desigualdad Report” that takes information from the GEIH.The data set contains
-#all individuals sampled in Bogota and is available at the following website 
-#https://ignaciomsarmiento.github.io/GEIH2018 sample/. To obtain the data, 
-#you must scrape the website.#
-
-## Descarga de datos 
-
-# Cargar las librerías necesarias
 library(rvest)
 library(dplyr)
 library(chromote)
+
+
+# ----------------------- #
+# ------- Punto 1 ------- #
+# ----------------------- #
+
+# Data Scrapping
+## Descarga de datos 
 
 # Crear la carpeta "data" si no existe, para guardar los archivos CSV
 if (!dir.exists("data")) {
@@ -99,7 +97,7 @@ base_completa <- bind_rows(lista_tablas)
 cat("Número total de observaciones en la base completa:", nrow(base_completa), "\n")
 
 # Guardar la base completa en un archivo CSV
-write.csv(GEIH_2018_sample_all, "data/GEIH_2018_sample_all.csv", row.names = FALSE)
+write.csv(base_completa, "data/GEIH_2018_sample_all.csv", row.names = FALSE)
 cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 
 
