@@ -9,11 +9,12 @@ install.packages("chromote")
 library(rvest)
 library(dplyr)
 library(chromote)
+library(readr)
 
 
-# ----------------------- #
-# ------- Punto 1 ------- #
-# ----------------------- #
+# ------------------------------ #
+# ------- Data Scrapping ------- #
+# ------------------------------ #
 
 # Data Scrapping
 ## Descarga de datos 
@@ -105,6 +106,9 @@ cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 #------------------------------------------------------------------------#
 ## EXPLORANDO LOS DATOS Y ELECCION DE VARIABLES RELEVANTES DE ANALISIS 
 #------------------------------------------------------------------------#
+
+datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/main/stores/GEIH_2018_sample_all.csv")
+head(datos)
 
 str(GEIH_2018_sample_all, list.len = ncol(GEIH_2018_sample_all))
 resumen_lista <- lapply(GEIH_2018_sample_all, summary)
