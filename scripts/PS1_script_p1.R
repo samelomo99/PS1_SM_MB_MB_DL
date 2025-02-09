@@ -147,3 +147,13 @@ stargazer(reg_p3, type = "text", title = "Logaritmo del salario en funcion de la
 
 reg_p3$coefficients
 
+
+## Revisando el ajuste intramodelo
+
+y_hat <- predict(reg_p3, newdata = datos)
+
+MSE_p3 <- mean((log_w - y_hat)^2)
+
+MSE_p3
+
+
