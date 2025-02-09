@@ -8,3 +8,5 @@ document --> taller en pdf
 scripts --> código en R
 stores --> bases de datos
 views --> tablas y gráficas
+
+Hola 
