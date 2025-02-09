@@ -145,27 +145,37 @@ skim(datos)
 ## Creamos las variables
 
 log_w <- log(datos$y_total_m)
+log_w1 <- log(datos1$y_total_m)
+log_w2 <- log(datos2$y_total_m)
 
 ## La regresión 
 
-reg_p3 <- lm(log_w ~ age + I(age^2), data = datos)
+reg_p3_1 <- lm(log_w1 ~ age + I(age^2), data = datos1)
+reg_p3_2 <- lm(log_w2 ~ age + I(age^2), data = datos2)
 
 #Generacion de la tabla 
-stargazer(reg_p3, type = "text", title = "Logaritmo del salario en funcion de la edad")
-##stargazer(reg_p3, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+stargazer(reg_p3_1, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_1, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+stargazer(reg_p3_2, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_2, type = "latex", title = "Logaritmo del salario en funcion de la edad")
 
 
 # Sacando los coeficientes
 
-reg_p3$coefficients
+reg_p3_1$coefficients
+reg_p3_2$coefficients
 
 
 ## Revisando el ajuste intramodelo
 
-y_hat <- predict(reg_p3, newdata = datos)
+log_w_hat_1 <- predict(reg_p3_1, newdata = datos1)
+log_w_hat_2  <- predict(reg_p3_2, newdata = datos2)
 
-MSE_p3 <- mean((log_w - y_hat)^2)
+MSE_1 <- mean((log_w1 - log_w_hat_1)^2)
+MSE_2 <- mean((log_w2 - log_w_hat_2)^2)
 
-MSE_p3
+MSE_1
+MSE_2
 
-
+## En este caso el MSE 2 se ajusta mejor y nos va mejor en el modelo de medias. 
