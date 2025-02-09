@@ -133,7 +133,8 @@ m_y_total_m <- mean(datos$y_total_m, na.rm = TRUE)
 datos2 <- datos %>%  mutate(y_total_m = replace_na(y_total_m, m_y_total_m))
 
 # Revisión rápida de los datos
-skim(datos)
+skim(datos1)
+skim(datos2)
 
 
 # ------------------------------------------------------------- #
@@ -143,7 +144,6 @@ skim(datos)
 
 ## Creamos las variables
 
-log_w <- log(datos$y_total_m)
 log_w1 <- log(datos1$y_total_m)
 log_w2 <- log(datos2$y_total_m)
 
