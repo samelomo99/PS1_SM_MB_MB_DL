@@ -14,6 +14,7 @@ library(chromote)
 library(readr)
 library(skimr)
 library(tidyverse)
+library(stargazer)
 
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 2 ------------------------- ##
@@ -128,4 +129,21 @@ skim(datos)
 ## ------------------------- PUNTO 3 ------------------------- ##
 # ------------------------------------------------------------- #
 
+
+## Creamos las variables
+
+log_w <- log(datos$y_total_m)
+
+## La regresión 
+
+reg_p3 <- lm(log_w ~ age + I(age^2), data = datos)
+
+#Generacion de la tabla 
+stargazer(reg_p3, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+
+# Sacando los coeficientes
+
+reg_p3$coefficients
 
