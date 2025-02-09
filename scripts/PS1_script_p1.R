@@ -11,6 +11,7 @@ library(dplyr)
 library(chromote)
 library(readr)
 
+# ---------- PUNTO 2 ----------- #
 
 # ------------------------------ #
 # ------- Data Scrapping ------- #
@@ -102,16 +103,22 @@ write.csv(base_completa, "data/GEIH_2018_sample_all.csv", row.names = FALSE)
 cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 
 
+# ------------------------------ #
+# ----- Manejo de los datos -----#
+# ------------------------------ #
 
-#------------------------------------------------------------------------#
-## EXPLORANDO LOS DATOS Y ELECCION DE VARIABLES RELEVANTES DE ANALISIS 
-#------------------------------------------------------------------------#
-
+# Usamos la base de datos scrapeada y subida al repositorio en GitHub
 datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/main/stores/GEIH_2018_sample_all.csv")
 head(datos)
 
-str(GEIH_2018_sample_all, list.len = ncol(GEIH_2018_sample_all))
-resumen_lista <- lapply(GEIH_2018_sample_all, summary)
+# Se debe mutar la base de datos, individuos empleados mayores de 18 años
+# Luego de esto hacemos la descripción de los datos
+
+
+
+# Estadísticas Descriptivas
+str(datos, list.len = ncol(datos))
+resumen_lista <- lapply(datos, summary)
 print(resumen_lista)
 
 
