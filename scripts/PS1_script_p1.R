@@ -121,6 +121,18 @@ datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/
 datos <- datos %>% filter(age >= 18, ocu == 1)
 summary(datos$age) # Comprobamos que el mínimo es 18 años.
 
+
+# -- NA / Missing Values - 2 aproximaciones -- #
+is.na(datos$y_total_m)
+
+# 1. Eliminamos NA
+datos1 <- datos %>% filter(!is.na(y_total_m))
+
+# 2. Reemplazamos NA por el valor medio
+m_y_total_m <- mean(datos$y_total_m, na.rm = TRUE)
+datos2 <- datos %>%  mutate(y_total_m = replace_na(y_total_m, m_y_total_m))
+
+
 # Revisión rápida de los datos
 skim(datos)
 
