@@ -115,6 +115,8 @@ cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 # ------------------------------ #
 
 # Usamos la base de datos scrapeada y subida al repositorio en GitHub
+
+#GEIH_2018_sample_all <- datos
 datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/main/stores/GEIH_2018_sample_all.csv")
 
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
@@ -135,6 +137,8 @@ datos2 <- datos %>%  mutate(y_total_m = replace_na(y_total_m, m_y_total_m))
 # Revisión rápida de los datos
 skim(datos1)
 skim(datos2)
+
+## Estadísticas descriptivas
 
 
 # ------------------------------------------------------------- #
@@ -179,8 +183,4 @@ MSE_2
 
 ## En este caso el MSE 2 se ajusta mejor y nos va mejor en el modelo de medias. 
 ## Nos casamos con el modelo de medias (datos2)
-
-
-
-#TEST DIANA
 
