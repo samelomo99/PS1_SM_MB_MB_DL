@@ -179,3 +179,8 @@ MSE_2
 
 ## En este caso el MSE 2 se ajusta mejor y nos va mejor en el modelo de medias. 
 ## Nos casamos con el modelo de medias (datos2)
+
+
+
+#TEST DIANA
+
