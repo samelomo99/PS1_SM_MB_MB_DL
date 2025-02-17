@@ -228,11 +228,11 @@ CF <- boot.ci(boot_p3, type = "perc")$percent[4:5] #Esto me saca el percentil
 edad_max_boot_p3 <- boot_p3$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
 
 ggplot(data.frame(edad_max_boot_p3), aes(x = edad_max_boot_p3)) +
-  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
   geom_density(color = "blue", size = 1) +  # Agregar densidad
-  geom_vline(aes(xintercept = mean(edad_max_boot_p3)), color = "red", linetype = "dashed", size = 1) +  # Media
-  geom_vline(aes(xintercept = CF[1]), color = "black", linetype = "dotted", size = 1.2) +  # Límite inferior IC
-  geom_vline(aes(xintercept = CF[2]), color = "black", linetype = "dotted", size = 1.2) +  # Límite superior IC
+  geom_vline(aes(xintercept = mean(edad_max_boot_p3)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
+  geom_vline(aes(xintercept = CF[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
   labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
        x = "Edad máxima estimada",
        y = "Densidad") +
