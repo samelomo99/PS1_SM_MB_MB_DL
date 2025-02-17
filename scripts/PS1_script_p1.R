@@ -15,6 +15,8 @@ library(readr)
 library(skimr)
 library(tidyverse)
 library(stargazer)
+library(ggplot2)
+library(boot)
 
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 2 ------------------------- ##
@@ -183,4 +185,42 @@ MSE_2
 
 ## En este caso el MSE 2 se ajusta mejor y nos va mejor en el modelo de medias. 
 ## Nos casamos con el modelo de medias (datos2)
+
+
+## Ahora desarrollamos una grafica para ver cual es el valor del punto pico del ingreso estimado en terminos de la edad.
+
+
+ggplot(datos2, aes(x = age, y = log_w_hat_2)) +
+  geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
+ # geom_smooth(method = "lm", color = "red", se = TRUE) +  # Línea de tendencia con intervalo de confianza
+  labs(title = "Relación entre Edad y el Logarimo de los Ingresos",
+       x = "Edad",
+       y = "Log(Ingresos)") +
+  theme_minimal()
+
+## Finalmente calculamos con bootstrap el valor maximo de los ingresos.
+  
+  ##Primero creamos la funcion 
+
+peak_age_f1<-function(datos2,index){
+  
+  reg_p3_2 <- lm(log_w2 ~ age + I(age^2), data = datos2, subset = index)
+  
+  
+  b2 <- coef(reg_p3_2)[2]
+  b3 <- coef(reg_p3_2)[3]
+  
+age_max <- -b2/(2*b3)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
+
+return(age_max)
+}
+
+peak_age_f1(datos2,1:nrow(datos2))  #Probando la funcion 
+
+  ##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p3 <- boot(data = datos2, peak_age_f1, R = 1000)
+boot_p3
+
+boot.ci(boot_p3, type = c("perc", "bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
