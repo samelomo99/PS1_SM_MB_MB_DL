@@ -224,8 +224,8 @@ boot_p3
 
 boot.ci(boot_p3, type = c("perc", "bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
-CF <- boot.ci(boot_p3, type = "perc")$percent[4:5]
-edad_max_boot_p3 <- boot_p3$t
+CF <- boot.ci(boot_p3, type = "perc")$percent[4:5] #Esto me saca el percentil
+edad_max_boot_p3 <- boot_p3$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
 
 ggplot(data.frame(edad_max_boot_p3), aes(x = edad_max_boot_p3)) +
   geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
