@@ -224,3 +224,16 @@ boot_p3
 
 boot.ci(boot_p3, type = c("perc", "bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
+CF <- boot.ci(boot_p3, type = "perc")$percent[4:5]
+edad_max_boot_p3 <- boot_p3$t
+
+ggplot(data.frame(edad_max_boot_p3), aes(x = edad_max_boot_p3)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_density(color = "blue", size = 1) +  # Agregar densidad
+  geom_vline(aes(xintercept = mean(edad_max_boot_p3)), color = "red", linetype = "dashed", size = 1) +  # Media
+  geom_vline(aes(xintercept = CF[1]), color = "black", linetype = "dotted", size = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF[2]), color = "black", linetype = "dotted", size = 1.2) +  # Límite superior IC
+  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+       x = "Edad máxima estimada",
+       y = "Densidad") +
+  theme_minimal()
