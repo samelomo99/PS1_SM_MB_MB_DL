@@ -124,21 +124,29 @@ datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
 datos <- datos %>% filter(age >= 18, ocu == 1)
 summary(datos$age) # Comprobamos que el mínimo es 18 años.
-
+skim(datos)
 
 # -- NA / Missing Values - 2 aproximaciones -- #
 is.na(datos$y_total_m)
 
 # 1. Eliminamos NA
 datos1 <- datos %>% filter(!is.na(y_total_m))
+datos3 <- datos %>% filter(!is.na(y_ingLab_m_ha))
+datos5 <- datos %>% filter(!is.na(y_total_m_ha))
 
 # 2. Reemplazamos NA por el valor medio
 m_y_total_m <- mean(datos$y_total_m, na.rm = TRUE)
-datos2 <- datos %>%  mutate(y_total_m = replace_na(y_total_m, m_y_total_m))
+m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
+m_y_total_m_ha <- mean(datos$y_total_m_ha, na.rm = TRUE)
+datos2 <- datos %>%  mutate(y_total_m = replace_na(y_total_m, m_y_total_m), y_total_m_ha = replace_na(y_total_m_ha, m_y_total_m_ha))
+datos4 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
 
 # Revisión rápida de los datos
 skim(datos1)
 skim(datos2)
+skim(datos3)
+skim(datos4)
+skim(datos5)
 
 ## Estadísticas descriptivas
 
@@ -229,10 +237,198 @@ edad_max_boot_p3 <- boot_p3$t #Aqui sacamos los valores estimados de cada una de
 
 ggplot(data.frame(edad_max_boot_p3), aes(x = edad_max_boot_p3)) +
   geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
-  geom_density(color = "blue", size = 1) +  # Agregar densidad
+  geom_density(color = "blue", linewidth = 1) +  # Agregar densidad
   geom_vline(aes(xintercept = mean(edad_max_boot_p3)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
   geom_vline(aes(xintercept = CF[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
   geom_vline(aes(xintercept = CF[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
+  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+       x = "Edad máxima estimada",
+       y = "Densidad") +
+  theme_minimal()
+
+#--------------------------------------------------------------------------------------------
+##Ahora con los ingresos totales por cada hora trabajada
+#--------------------------------------------------------------------------------------------
+
+## Creamos las variables
+
+log_w1_ha <- log(datos1$y_total_m_ha)
+log_w2_ha <- log(datos2$y_total_m_ha)
+
+## La regresión 
+
+reg_p3_1_ha <- lm(log_w1_ha ~ age + I(age^2), data = datos1)
+reg_p3_2_ha <- lm(log_w2_ha ~ age + I(age^2), data = datos2)
+
+#Generacion de la tabla 
+stargazer(reg_p3_1_ha, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_1_ha, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+stargazer(reg_p3_2_ha, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_2_ha, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+
+# Sacando los coeficientes
+
+reg_p3_1_ha$coefficients
+reg_p3_2_ha$coefficients
+
+
+## Revisando el ajuste intramodelo
+
+log_w_hat_1_ha <- predict(reg_p3_1_ha, newdata = datos1)
+log_w_hat_2_ha  <- predict(reg_p3_2_ha, newdata = datos2)
+
+MSE_1_ha <- mean((log_w1_ha - log_w_hat_1_ha)^2)
+MSE_2_ha <- mean((log_w2_ha - log_w_hat_2_ha)^2)
+
+MSE_1_ha
+MSE_2_ha
+
+## En este caso el MSE 2_ha se ajusta mejor y nos va mejor en el modelo de medias. 
+## Nos casamos con el modelo de medias (datos2)
+
+
+## Ahora desarrollamos una grafica para ver cual es el valor del punto pico del ingreso estimado en terminos de la edad.
+
+
+ggplot(datos2, aes(x = age, y = log_w_hat_2_ha)) +
+  geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
+  # geom_smooth(method = "lm", color = "red", se = TRUE) +  # Línea de tendencia con intervalo de confianza
+  labs(title = "Relación entre Edad y el Logarimo de los Ingresos",
+       x = "Edad",
+       y = "Log(Ingresos)") +
+  theme_minimal()
+
+## Finalmente calculamos con bootstrap el valor maximo de los ingresos.
+
+##Primero creamos la funcion 
+
+peak_age_f1_ha<-function(datos2,index){
+  
+  reg_p3_2_ha <- lm(log_w2_ha ~ age + I(age^2), data = datos2, subset = index)
+  
+  
+  b2_ha <- coef(reg_p3_2_ha)[2]
+  b3_ha <- coef(reg_p3_2_ha)[3]
+  
+  age_max_ha <- -b2_ha/(2*b3_ha)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
+  
+  return(age_max_ha)
+}
+
+peak_age_f1_ha(datos2,1:nrow(datos2))  #Probando la funcion 
+
+##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p3_ha <- boot(data = datos2, peak_age_f1_ha, R = 1000)
+boot_p3_ha
+
+boot.ci(boot_p3_ha, type = c("perc", "bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+
+CF_ha <- boot.ci(boot_p3_ha, type = "perc")$percent[4:5] #Esto me saca el percentil
+edad_max_boot_p3_ha <- boot_p3_ha$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
+
+ggplot(data.frame(edad_max_boot_p3_ha), aes(x = edad_max_boot_p3_ha)) +
+  geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_density(color = "blue", linewidth = 1) +  # Agregar densidad
+  geom_vline(aes(xintercept = mean(edad_max_boot_p3_ha)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
+  geom_vline(aes(xintercept = CF_ha[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF_ha[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
+  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+       x = "Edad máxima estimada",
+       y = "Densidad") +
+  theme_minimal()
+
+#-----------------------------------------------
+## Ahora la version con datos de horas laboradas
+#-----------------------------------------------
+
+## Creamos las variables
+
+log_s1 <- log(datos3$y_ingLab_m_ha)
+log_s2 <- log(datos4$y_ingLab_m_ha)
+
+## La regresión 
+
+reg_p3_1s <- lm(log_s1 ~ age + I(age^2), data = datos3)
+reg_p3_2s <- lm(log_s2 ~ age + I(age^2), data = datos4)
+
+#Generacion de la tabla 
+stargazer(reg_p3_1s, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_1s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+stargazer(reg_p3_2s, type = "text", title = "Logaritmo del salario en funcion de la edad")
+##stargazer(reg_p3_2s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+
+
+# Sacando los coeficientes
+
+reg_p3_1s$coefficients
+reg_p3_2s$coefficients
+
+
+## Revisando el ajuste intramodelo
+
+log_s_hat_1 <- predict(reg_p3_1s, newdata = datos3)
+log_s_hat_2  <- predict(reg_p3_2s, newdata = datos4)
+
+MSE_1s <- mean((log_s1 - log_s_hat_1)^2)
+MSE_2s <- mean((log_s2 - log_s_hat_2)^2)
+
+MSE_1s
+MSE_2s
+
+## En este caso el MSE 2s se ajusta mejor y nos va mejor en el modelo de medias. 
+## Nos casamos con el modelo de medias (datos4)
+
+
+## Ahora desarrollamos una grafica para ver cual es el valor del punto pico del ingreso estimado en terminos de la edad.
+
+
+ggplot(datos4, aes(x = age, y = log_s_hat_2)) +
+  geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
+  # geom_smooth(method = "lm", color = "red", se = TRUE) +  # Línea de tendencia con intervalo de confianza
+  labs(title = "Relación entre Edad y el Logarimo de los Ingresos",
+       x = "Edad",
+       y = "Log(Ingresos)") +
+  theme_minimal()
+
+## Finalmente calculamos con bootstrap el valor maximo de los ingresos.
+
+##Primero creamos la funcion 
+
+peak_age_f2<-function(datos2,index){
+  
+  reg_p3_2s <- lm(log_s2 ~ age + I(age^2), data = datos2, subset = index)
+  
+  
+  b2s <- coef(reg_p3_2s)[2]
+  b3s <- coef(reg_p3_2s)[3]
+  
+  age_max_s <- -b2s/(2*b3s)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
+  
+  return(age_max_s)
+}
+
+peak_age_f2(datos2,1:nrow(datos4))  #Probando la funcion 
+
+##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p3_s <- boot(data = datos4, peak_age_f2, R = 1000)
+boot_p3_s
+
+boot.ci(boot_p3_s, type = c("perc", "bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+
+CF_S <- boot.ci(boot_p3_s, type = "perc")$percent[4:5] #Esto me saca el percentil
+edad_max_boot_p3_s <- boot_p3_s$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
+
+ggplot(data.frame(edad_max_boot_p3_s), aes(x = edad_max_boot_p3_s)) +
+  geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_density(color = "blue", linewidth = 1) +  # Agregar densidad
+  geom_vline(aes(xintercept = mean(edad_max_boot_p3_s)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
+  geom_vline(aes(xintercept = CF_S[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF_S[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
   labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
        x = "Edad máxima estimada",
        y = "Densidad") +
