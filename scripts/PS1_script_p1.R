@@ -29,10 +29,16 @@ library(boot)
 # Data Scrapping
 ## Descarga de datos 
 
-# Crear la carpeta "data" si no existe, para guardar los archivos CSV
-if (!dir.exists("data")) {
-  dir.create("data")
+#Nota: es importante que para que la carpeta stores se cree en el lugar correcto
+##estemos ubicados en ruta donde queremos que esta sea creada
+## Descarga de datos 
+
+# Crear la carpeta "stores" si no existe (dentro del repositorio)
+if (!dir.exists("stores")) {
+  dir.create("stores")
+  cat("Carpeta 'stores' creada.\n")
 }
+
 
 # Lista para almacenar cada data.frame extraído
 lista_tablas <- list()
