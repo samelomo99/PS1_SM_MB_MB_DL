@@ -18,6 +18,21 @@ library(stargazer)
 library(ggplot2)
 library(boot)
 
+# install pacman
+if(!require(pacman)) install.packages("pacman") ; require(pacman)
+# require/install packages on this session
+
+p_load(rvest,
+       dplyr,
+       chromote,
+       readr,
+       skimr,
+       tidyverse,
+       stargazer,
+       ggplot2,
+       boot)
+       
+
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 2 ------------------------- ##
 # ------------------------------------------------------------- #
@@ -124,7 +139,9 @@ cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 
 # Usamos la base de datos scrapeada y subida al repositorio en GitHub
 
-#GEIH_2018_sample_all <- datos
+#GEI
+
+H_2018_sample_all <- datos
 datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/main/stores/GEIH_2018_sample_all.csv")
 
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
@@ -400,6 +417,15 @@ ggplot(datos4, aes(x = age, y = log_s_hat_2)) +
        y = "Log(Ingresos)") +
   theme_minimal()
 
+ggplot(datos4, aes(x = age, y = log_s_hat_2)) +
+  geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
+  geom_vline(xintercept = 50, color = "red", linetype = "dashed", size = 1) +  # Línea vertical roja en x = 50
+  # geom_smooth(method = "lm", color = "red", se = TRUE) +  # Línea de tendencia opcional
+  labs(title = "Relación entre Edad y el Logaritmo de los Ingresos",
+       x = "Edad",
+       y = "Log(Ingresos)") +
+  theme_minimal()
+
 ## Finalmente calculamos con bootstrap el valor maximo de los ingresos.
 
 ##Primero creamos la funcion 
@@ -435,6 +461,162 @@ ggplot(data.frame(edad_max_boot_p3_s), aes(x = edad_max_boot_p3_s)) +
   geom_vline(aes(xintercept = mean(edad_max_boot_p3_s)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
   geom_vline(aes(xintercept = CF_S[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
   geom_vline(aes(xintercept = CF_S[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
+  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+       x = "Edad máxima estimada",
+       y = "Densidad") +
+  theme_minimal()
+
+
+# ------------------------------------------------------------- #
+## ------------------------- PUNTO 4 ------------------------- ##
+# ------------------------------------------------------------- #
+
+## Hacemos la regresion
+
+datos4 <- datos4 %>%
+  mutate(female = ifelse(sex == 0, 1, 0))
+
+reg_p4 <- lm(log_s2~female, data=datos4)
+
+stargazer(reg_p4, type = "text", title = "Logaritmo del salario en funcion del genero")
+ 
+## Teorema FWL
+
+# x1 es la variable female
+# x2 son los controles que corresponden a: edad y estrato
+
+reg_p4_controles <- lm(log_s2 ~ female+age+estrato1, data = datos4)
+stargazer(reg_p4_controles, type = "text", title = "Logaritmo del salario en funcion del genero")
+
+
+regaux_p4_x1 <- lm(female~age+estrato1, data=datos4) # Regresion de x2 sobre x1
+
+regaux_p4_y <- lm(log_s2~age+estrato1, data=datos4) # Regresion de x2 sobre y
+
+# Despues de purgar x2 de x1 y de y, se corre la regresion
+
+x1_resid <- regaux_p4_x1$residuals
+x1_resid
+
+y_resid <- regaux_p4_y$residuals
+y_resid
+
+reg_p4_fwl <- lm(y_resid~x1_resid, data=datos4)
+stargazer(reg_p4_controles,reg_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
+
+
+
+# Teorema FWL con bootstrap
+
+fwl_function<-function(datos4,index){
+  
+  regaux_p4_x1 <- lm(female~age+estrato1, data=datos4, subset=index) # Regresion de x2 sobre x1
+  regaux_p4_y <- lm(log_s2~age+estrato1, data=datos4, subset=index)
+  
+  
+  x1_resid <- regaux_p4_x1$residuals
+  
+  y_resid <- regaux_p4_y$residuals
+
+  
+  reg_p4_fwl <- lm(y_resid~x1_resid, data=datos4)
+
+  beta_female <- reg_p4_fwl$coefficients[2]  
+
+  return(beta_female)
+}
+
+fwl_function(datos4,1:nrow(datos4))  #Probando la funcion 
+
+##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p4_ha <- boot(data = datos4, fwl_function, R = 1000)
+boot_p4_ha
+
+boot.ci(boot_p4_ha, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+
+## ----------
+
+peak_age_female <-function(datos4,index){
+  
+  datos_muestra <- datos4[index, ]  # Tomar solo las filas seleccionadas por bootstrap
+  datos_female <- datos_muestra[datos_muestra$female == 1, ]  # Filtrar solo mujeres
+  
+  log_salario <- log(datos_female$y_ingLab_m_ha)
+  
+  reg_p4_peak_female <- lm(log_salario ~ age + I(age^2), data = datos_female)
+  
+  
+  b2_f <- coef(reg_p4_peak_female)[2]
+  b3_f <- coef(reg_p4_peak_female)[3]
+  
+  age_max_f <- -b2_f/(2*b3_f)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
+  
+  return(age_max_f)
+}
+
+peak_age_female(datos4,1:nrow(datos4))  #Probando la funcion 
+
+##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p4_f <- boot(data = datos4, peak_age_female, R = 1000)
+boot_p4_f
+
+boot.ci(boot_p4_f, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+
+CF_female <- boot.ci(boot_p4_f, type = "perc")$percent[4:5] #Esto me saca el percentil
+edad_max_female <- boot_p4_f$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
+
+ggplot(data.frame(edad_max_female), aes(x = edad_max_female)) +
+  geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_density(color = "blue", linewidth = 1) +  # Agregar densidad
+  geom_vline(aes(xintercept = mean(edad_max_female)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
+  geom_vline(aes(xintercept = CF_female[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF_female[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
+  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+       x = "Edad máxima estimada",
+       y = "Densidad") +
+  theme_minimal()
+
+
+## ----
+
+peak_age_male <-function(datos4,index){
+  
+  datos_muestra <- datos4[index, ]  # Tomar solo las filas seleccionadas por bootstrap
+  datos_male <- datos_muestra[datos_muestra$female == 0, ]  # Filtrar solo mujeres
+  
+  log_salario <- log(datos_male$y_ingLab_m_ha)
+  
+  reg_p4_peak_male <- lm(log_salario ~ age + I(age^2), data = datos_male)
+  
+  
+  b2_m <- coef(reg_p4_peak_male)[2]
+  b3_m <- coef(reg_p4_peak_male)[3]
+  
+  age_max_m <- -b2_m/(2*b3_m)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
+  
+  return(age_max_m)
+}
+
+peak_age_male(datos4,1:nrow(datos4))  #Probando la funcion 
+
+##Finalmente hacemos la simulación
+set.seed(1234)
+boot_p4_m <- boot(data = datos4, peak_age_male, R = 1000)
+boot_p4_m
+
+boot.ci(boot_p4_m, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+
+CF_male <- boot.ci(boot_p4_m, type = "perc")$percent[4:5] #Esto me saca el percentil
+edad_max_male <- boot_p4_m$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
+
+ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
+  geom_histogram(aes(y =after_stat(density)), bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
+  geom_density(color = "blue", linewidth = 1) +  # Agregar densidad
+  geom_vline(aes(xintercept = mean(edad_max_male)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
+  geom_vline(aes(xintercept = CF_male[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
+  geom_vline(aes(xintercept = CF_male[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
   labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
        x = "Edad máxima estimada",
        y = "Densidad") +
