@@ -5,22 +5,33 @@
 
 # Instalación / Librerías
 
+# Instalar y cargar pacman si aún no lo tienes
+if (!require("pacman")) install.packages("pacman")
+library(pacman)
 
-# install pacman
-if(!require(pacman)) install.packages("pacman") ; require(pacman)
-# require/install packages on this session
+# Instalar y cargar todos los paquetes necesarios en una sola llamada
+pacman::p_load(
+  readr,        # Importar datos (ya incluido en tidyverse)
+  labelled,     # Manejo de etiquetas
+  naniar,       # Visualizar datos faltantes
+  DataExplorer, # Gráficos de missing values
+  psych,        # Estadísticas descriptivas
+  rvest,        # Web scraping
+  rio,          # Importar/exportar datos
+  tidyverse,    # Conjunto de paquetes para tidy data (incluye dplyr, ggplot2, etc.)
+  skimr,        # Resumen de datos
+  visdat,       # Visualizar datos faltantes
+  corrplot,     # Gráficos de correlación
+  gridExtra,    # Organización de gráficos
+  MASS,         # Funciones estadísticas diversas
+  stargazer,    # Tablas para salida a TEX
+  chromote,     # Automatización de navegador (útil para scraping avanzado)
+  ggplot2,      # Gráficos (ya incluido en tidyverse)
+  boot,         # Funciones de bootstrap
+  patchwork     # Combinación de gráficos
+)
 
-p_load(rvest,
-       dplyr,
-       chromote,
-       readr,
-       skimr,
-       tidyverse,
-       stargazer,
-       ggplot2,
-       boot,
-       patchwork)
-       
+
 
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 2 ------------------------- ##
@@ -122,17 +133,153 @@ write.csv(base_completa, "data/GEIH_2018_sample_all.csv", row.names = FALSE)
 cat("Base completa guardada en data/GEIH_2018_sample_all.csv\n")
 
 
-# ------------------------------ #
-# ----- Manejo de los datos -----#
-# ------------------------------ #
+# --------------------------------------------------------------- #
+#   ----- MANEJO DE DATOS Y ELECCION DE VARIABLES DE INTERÉS -----#
+# --------------------------------------------------------------- #
 
 # Usamos la base de datos scrapeada y subida al repositorio en GitHub
 
 #GEIH
 
-
 datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/main/stores/GEIH_2018_sample_all.csv")
 
+## filtramos solo las variables de interes y construimos variables necesarias
+      ### El problema establece que el modelo debe predecir el salario por hora de 
+        # los individuos, por tanto, incluiremos en la sub-base variables de salario por hora
+        # en diferentes especificaciones para analisis exploratorio.
+        # La elección de las potenciales variables predictores en un modelo de predicción de 
+        # salarios por hora se fundamenta en la teoría del capital humano 
+        # (Mincer, 1974) y en estudios previos que han analizado los determinantes 
+        # del ingreso laboral.
+            
+            # 1. Variables clave del capital humano: El modelo minceriano sugiere que 
+            #    la educación y la experiencia son los principales determinantes del salario.
+            # 2. Características sociodemográficas: Las diferencias salariales pueden 
+            #    explicarse parcialmente por atributos personales y sociales
+            # 3. Variables relacionadas con el empleo y la firma: Las características 
+            #    de la empresa y del empleo afectan significativamente la estructura 
+            #    salarial.
+
+
+# 1. Seleccionar las variables de interés, incluyendo las variables llave:
+#    - directorio: Llave de vivienda
+#    - orden: Llave de persona
+#    - secuencia_p: Llave de hogar
+
+# Nota: la variable   clase (1 urabano 0 rural), no se incluye porque toddo es urbano
+#la varaible dominio y departamento, no se incluye porque todo es Bogota
+
+datos <- datos %>%
+  select(
+    directorio,    # Llave de vivienda
+    orden,         # Llave de persona
+    secuencia_p,   # Llave de hogar
+    y_total_m,
+    y_ingLab_m_ha,
+    y_total_m_ha,
+    y_salary_m_hu,
+    sex,
+    age,
+    maxEducLevel,
+    p6050,
+    estrato1,
+    oficio,
+    relab,
+    formal,
+    sizeFirm,
+    cotPension,
+    p6426,
+    ocu
+  )
+
+
+# Visualizar la estructura de la nueva base de datos
+str(datos)
+
+#2. Creamos algunas variables de interes antes filtrar por los mayores de 18    
+
+#2.1. NUMERO DE MENORES EN EL HOGAR
+##Crear variable indicador de menores de 18 años
+datos <- datos %>%
+  mutate(flag = ifelse(age <= 6, 1, 0))
+
+#Calcular el número total de menores por hogar (identificado por 'directorio' y 'secuencia_p')
+datos <- datos %>%
+  group_by(directorio, secuencia_p) %>%
+  mutate(nmenores = sum(flag)) %>%
+  select(-flag) %>% 
+  ungroup()
+
+# Verificar el resultado mostrando las últimas filas
+datos %>% 
+  dplyr::select(directorio, secuencia_p, age, nmenores) %>% 
+  head(10) %>%
+  View()
+
+#2.2 JEFE DE HOGAR (1= jefe 0=otro caso)
+datos <- datos %>%
+  mutate(H_Head = ifelse( p6050== 1, 1, 0))
+
+table(datos$H_Head)
+
+#2.3 JEFE DE HOGAR MUJER
+
+#renombrando variable sex=gender (nota: gender= 0=mujer 1=hombre)
+datos <- as_tibble(datos) %>% rename(gender=sex)
+
+# creando variable jefe hogar mujer 
+datos <- datos %>%
+  mutate(Head_Female = H_Head*(1-gender))
+
+table(datos$Head_Female)
+table(datos$gender)  
+
+
+# Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
+datos <- datos %>% filter(age >= 18, ocu == 1)
+summary(datos$age) # Comprobamos que el mínimo es 18 años.
+
+
+##########################
+#INSPECCIÓN DE LOS DATOS
+##########################
+
+datos <- as_tibble(datos) ## de dataframe to tibble
+
+## print data
+head(datos)
+tail(datos)
+
+## Inspección básica de la estructura y resumen de datos
+
+skim_data <- skim(datos)
+print(skim_data, n = Inf) # Imprimir todas las filas en la consola
+View(skim_data) # abrirlo en el visor de datos 
+
+###Se revisa la estructura del dataframe (con glimpse y resumen estadístico básico (summary).
+glimpse(datos)
+summary(datos)
+
+##Otra opcion de exploracion es usar el paquete summarytool que genera uy completo que incluye las frecuencias y el porcentaje de NA para cada variable
+install.packages("summarytools")  # Si no lo tienes instalado
+library(summarytools)
+resumen <- dfSummary(datos, style = "grid", plain.ascii = FALSE) # resumen completo de la base
+print(resumen, method = "browser") # Imprime el resumen en el navegador
+
+
+#Visualización de datos faltantes
+
+# a) Con naniar: gráfico de missing values
+vis_miss(datos)
+
+# b) Con DataExplorer: gráfico de missing values
+plot_missing(datos)
+
+
+
+
+
+##################################
 
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
 datos <- datos %>% filter(age >= 18, ocu == 1)
