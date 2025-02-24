@@ -28,9 +28,8 @@ pacman::p_load(
   chromote,     # Automatización de navegador (útil para scraping avanzado)
   ggplot2,      # Gráficos (ya incluido en tidyverse)
   boot,         # Funciones de bootstrap
-  patchwork,    # Combinación de gráficos
-  dplyr
-)
+  patchwork    # Combinación de gráficos
+ )
 
 
 # ------------------------------------------------------------- #
@@ -157,10 +156,7 @@ head(datos)
 tail(datos)
 
 ## Inspección básica de la estructura y resumen de datos
-
-skim_data <- skim(datos)
-print(skim_data, n = Inf) # Imprimir todas las filas en la consola
-View(skim_data) # abrirlo en el visor de datos 
+skim(datos)
 
 ###Se revisa la estructura del dataframe (con glimpse y resumen estadístico básico (summary).
 glimpse(datos)
