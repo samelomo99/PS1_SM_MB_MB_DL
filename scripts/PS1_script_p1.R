@@ -74,17 +74,11 @@ datos <- read_csv(
 # Nota: la variable   clase (1 urabano 0 rural), no se incluye porque todo es urbano
 #la variable dominio y departamento, no se incluye porque todo es Bogota
 
-<<<<<<< HEAD
 datos <- datos %>%
   dplyr::select(
-=======
-datos <- datos %>% 
-  select(
->>>>>>> 2e28a1bedd9272a67fe06d864143b7f6f9c9868b
     directorio,    # Llave de vivienda
     orden,         # Llave de persona
     secuencia_p,   # Llave de hogar
-    y_total_m,
     y_ingLab_m_ha,
     y_total_m_ha,
     y_salary_m_hu,
@@ -96,6 +90,9 @@ datos <- datos %>%
     oficio,
     relab,
     formal,
+    informal,
+    microEmpresa,
+    cuentaPropia,
     sizeFirm,
     cotPension,
     p6426,
@@ -166,14 +163,10 @@ head(datos)
 tail(datos)
 
 ## Inspección básica de la estructura y resumen de datos
-<<<<<<< HEAD
 library(skimr)
 skim_data <- skim(datos)
 print(skim_data, n = Inf) # Imprimir todas las filas en la consola
 View(skim_data) # abrirlo en el visor de datos 
-=======
-skim(datos)
->>>>>>> 2e28a1bedd9272a67fe06d864143b7f6f9c9868b
 
 ###Se revisa la estructura del dataframe (con glimpse y resumen estadístico básico (summary).
 glimpse(datos)
@@ -217,34 +210,95 @@ db2 <- datos %>% mutate_all(~ifelse(!is.na(.), 1, 0)) %>%
 M <- cor(db2)
 corrplot(M) 
 
-###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
-#          variables de ingresos y en la de maxeduclevel. Procedemos a dar manejo a
-#          los datos faltantes. 
 
 ###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
 #          variables de ingresos y en la de maxeduclevel. Procedemos a dar manejo a
 #          los datos faltantes. 
 
-
-###A continuación se procedr a dar manejo a datos missing
-
+###A continuación se proceder a dar manejo a datos missing,por el momento hacemos 
+#   procesamiento de datos a las diferentes formas de la variable de salario/ingreso
+#   para definir la mejor opcion 
 
 ### la tabla de resumen tambien indica que hay valores extremos en las variables relacionadas
 #   con el ingreso, antes de proceder a seleccion nuestra variable de resultado,
 #   haremos algunas exploraciones de outliers y su respectivo manejo 
 
 
+#Corrigiendo missing años de educacion           
 
-## se genera tabla descriptiva de variable de interes del modelo 
+ggplot(datos, aes(maxEducLevel)) +
+  geom_histogram(color = "#000000", fill = "#0099F8") +
+  ggtitle("Max Edu  Distribution") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 18))   
+
+# como es una variable categorica se reemplaza con el valor mas comun (moda)
+
+# se calcula el valor mas comun maxEducLevel. 
+mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[1]))
+
+# Imputing the missing value. 
+datos <- datos  %>%
+  mutate(maxEducLevel = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
+
+# Corrigiendo missing en regSalud
+#regSalud 1 r. contributivo
+#regSalud 2 r. especial
+#regSalud 3 r. subsidiado
+#regSalud 9 N/A
+
+#tabla cruzada para verificar que caracteristiscas tienen aquellos con missing en RegSalud
+
+datos <- datos %>%
+  mutate(regSalud_status = ifelse(is.na(regSalud), "Missing", "Not Missing"))
+
+
+# a) Para la variable formal (=1 if formal (social security); =0 otherwise)
+table_formal <- table(datos$regSalud_status, datos$formal)
+print("Tabla cruzada: regSalud_status vs. formal")
+print(table_formal) #aquellos con missing en Reg Salud es porque no son formales
+
+# b) Para la variable relab 
+#relab 1 "Obrero o empleado de empresa particular";
+#relab 2 "Obrero o empleado del gobierno";
+#relab 3 "Empleado doméstico";
+#relab 4 "Trabajador por cuenta propia";
+#relab 5 "Patron o empleador";
+#relab 6 "Trabajador familiar sin remuneracion";
+#relab 7 "Trabajador sin remuneracin en empresas o negocios de otros hogares";
+#relab 8 "Jornalero o peon";
+#relab 9 "Otro";
+
+table_relab <- table(datos$regSalud_status, datos$relab)
+print("Tabla cruzada: regSalud_status vs. relab")
+print(table_relab)
+
+table_sizefirm <- table(datos$regSalud_status, datos$sizeFirm)
+print("Tabla cruzada: regSalud_status vs. sizefirm")
+print(table_sizefirm)
+
+#se observa que los valores missingen RegSalud, estan mas asociados a una 
+# condicion de informalidad o personas que son cuenta propia, por tanto
+# esto corresponde mas un no aplica, que aun missing real, no seria 
+# adecuado reemplazar con la moda, en el directorio de variables, estos
+# corresponderian a la categoria No Aplica=9 
+datos <- datos %>%
+  mutate(regSalud = ifelse(is.na(regSalud), 9, regSalud))
+
+table(datos$regSalud)
+
+#Explorando variable de resultado y_ingLab_m_ha: correccion de missing y otuliers
+
+
 
 
 ##################################
-
+#esto ya se hizo en la linea 151-152
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
-datos <- datos %>% filter(age >= 18, ocu == 1)
-summary(datos$age) # Comprobamos que el mínimo es 18 años.
-skim(datos)
-
+#datos <- datos %>% filter(age >= 18, ocu == 1)
+#summary(datos$age) # Comprobamos que el mínimo es 18 años.
+#skim(datos)
+###################
 # -- NA / Missing Values - 2 aproximaciones -- #
 is.na(datos$y_ingLab_m_ha)
 
