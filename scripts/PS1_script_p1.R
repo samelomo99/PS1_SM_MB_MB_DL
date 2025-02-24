@@ -170,7 +170,7 @@ datos <- read_csv("https://raw.githubusercontent.com/samelomo99/PS1_SM_MB_MB_DL/
 #la varaible dominio y departamento, no se incluye porque todo es Bogota
 
 datos <- datos %>%
-  select(
+  dplyr::select(
     directorio,    # Llave de vivienda
     orden,         # Llave de persona
     secuencia_p,   # Llave de hogar
@@ -189,8 +189,11 @@ datos <- datos %>%
     sizeFirm,
     cotPension,
     p6426,
-    ocu
+    ocu,
+    pea,
+    regSalud
   )
+
 
 
 # Visualizar la estructura de la nueva base de datos
@@ -200,6 +203,7 @@ str(datos)
 
 #2.1. NUMERO DE MENORES EN EL HOGAR
 ##Crear variable indicador de menores de 18 años
+library(dplyr)
 datos <- datos %>%
   mutate(flag = ifelse(age <= 6, 1, 0))
 
@@ -207,7 +211,7 @@ datos <- datos %>%
 datos <- datos %>%
   group_by(directorio, secuencia_p) %>%
   mutate(nmenores = sum(flag)) %>%
-  select(-flag) %>% 
+  dplyr::select(-flag) %>% 
   ungroup()
 
 # Verificar el resultado mostrando las últimas filas
@@ -215,6 +219,7 @@ datos %>%
   dplyr::select(directorio, secuencia_p, age, nmenores) %>% 
   head(10) %>%
   View()
+
 
 #2.2 JEFE DE HOGAR (1= jefe 0=otro caso)
 datos <- datos %>%
@@ -251,7 +256,7 @@ head(datos)
 tail(datos)
 
 ## Inspección básica de la estructura y resumen de datos
-
+library(skimr)
 skim_data <- skim(datos)
 print(skim_data, n = Inf) # Imprimir todas las filas en la consola
 View(skim_data) # abrirlo en el visor de datos 
@@ -267,13 +272,56 @@ resumen <- dfSummary(datos, style = "grid", plain.ascii = FALSE) # resumen compl
 print(resumen, method = "browser") # Imprime el resumen en el navegador
 
 
-#Visualización de datos faltantes
+##Visualización de datos faltantes, utilizando diferentes metricas aprendidas 
+#en clase
 
-# a) Con naniar: gráfico de missing values
+skim_data <- as_tibble(skim(datos))  # Forzar a tibble
+db_miss <- skim_data %>% dplyr::select(skim_variable, n_missing)
+
+
+# a) ggplot
+library(ggplot2)
+ggplot(db_miss, aes(x = reorder(skim_variable, +n_missing), y = n_missing)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  coord_flip() +
+  labs(title = "N Missing Per Variable", x = "Var Name", y = "Missings") + 
+  theme(axis.text = element_text(size = 5))
+
+# b) Con naniar: gráfico de missing values
 vis_miss(datos)
 
-# b) Con DataExplorer: gráfico de missing values
+# c) Con DataExplorer: gráfico de missing values
 plot_missing(datos)
+
+# d) grafico de correlaciones: creamos a dataset con todas ls variables== 1 if missing
+db2 <- datos %>% mutate_all(~ifelse(!is.na(.), 1, 0))
+## descartar variables con ningun missing o con todas missing.
+db2 <- datos %>% mutate_all(~ifelse(!is.na(.), 1, 0)) %>%
+  select_if(~sd(.) > 0)
+## Usar el paquete corrplot para visualizar una matriz de correlación 
+#de cómo se correlacionan los valores faltantes entre diferentes variables.
+M <- cor(db2)
+corrplot(M) 
+
+###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
+#          variables de ingresos y en la de maxeduclevel. Procedemos a dar manejo a
+#          los datos faltantes. 
+
+###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
+#          variables de ingresos y en la de maxeduclevel. Procedemos a dar manejo a
+#          los datos faltantes. 
+
+
+###A continuación se procedr a dar manejo a datos missing
+
+
+### la tabla de resumen tambien indica que hay valores extremos en las variables relacionadas
+#   con el ingreso, antes de proceder a seleccion nuestra variable de resultado,
+#   haremos algunas exploraciones de outliers y su respectivo manejo 
+
+
+
+## se genera tabla descriptiva de variable de interes del modelo 
 
 
 
