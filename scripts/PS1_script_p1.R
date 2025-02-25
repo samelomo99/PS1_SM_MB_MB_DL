@@ -28,7 +28,8 @@ pacman::p_load(
   chromote,     # Automatización de navegador (útil para scraping avanzado)
   ggplot2,      # Gráficos (ya incluido en tidyverse)
   boot,         # Funciones de bootstrap
-  patchwork    # Combinación de gráficos
+  patchwork,    # Combinación de gráficos
+  caret         # For predictive model assessment
  )
 
 
@@ -232,7 +233,7 @@ ggplot(datos, aes(maxEducLevel)) +
   theme_classic() +
   theme(plot.title = element_text(size = 18))   
 
-# como es una variable categorica se reemplaza con el valor mas comun (moda)
+# como es una variable categórica se reemplaza con el valor mas común (moda)
 
 # se calcula el valor mas comun maxEducLevel. 
 mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[1]))
@@ -289,9 +290,6 @@ table(datos$regSalud)
 
 #Explorando variable de resultado y_ingLab_m_ha: correccion de missing y otuliers
 
-
-
-
 ##################################
 #esto ya se hizo en la linea 151-152
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
@@ -299,6 +297,10 @@ table(datos$regSalud)
 #summary(datos$age) # Comprobamos que el mínimo es 18 años.
 #skim(datos)
 ###################
+
+
+## --- Tratamniento Missing Values --- ##
+
 # -- NA / Missing Values - 2 aproximaciones -- #
 is.na(datos$y_ingLab_m_ha)
 
@@ -315,7 +317,6 @@ datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab
 skim(datos1)
 skim(datos2)
 
-## Estadísticas descriptivas
 
 
 # ------------------------------------------------------------- #
@@ -324,32 +325,36 @@ skim(datos2)
 
 ## Creamos las variables
 
-log_s1 <- log(datos1$y_ingLab_m_ha)
-log_s2 <- log(datos2$y_ingLab_m_ha)
+datos1 <- datos1 %>% mutate(log_s1 = log(y_ingLab_m_ha))
+datos2 <- datos2 %>% mutate(log_s2 = log(y_ingLab_m_ha))
+
 
 ## La regresión 
 
-reg_p3_1s <- lm(log_s1 ~ age + I(age^2), data = datos1)
-reg_p3_2s <- lm(log_s2 ~ age + I(age^2), data = datos2)
+reg_p3_1s <- log_s1 ~ age + I(age^2)
+modelo_p3_1s <- lm(reg_p3_1s, data = datos1)
+
+reg_p3_2s <- log_s2 ~ age + I(age^2)
+modelo_p3_2s <- lm(reg_p3_2s, data = datos2)
 
 #Generacion de la tabla 
-stargazer(reg_p3_1s, type = "text", title = "Logaritmo del salario en funcion de la edad")
+stargazer(modelo_p3_s1, type = "text", title = "Logaritmo del salario en funcion de la edad")
 ##stargazer(reg_p3_1s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
 
-stargazer(reg_p3_2s, type = "text", title = "Logaritmo del salario en funcion de la edad")
+stargazer(modelo_p3_2s, type = "text", title = "Logaritmo del salario en funcion de la edad")
 ##stargazer(reg_p3_2s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
 
 
 # Sacando los coeficientes
 
-reg_p3_1s$coefficients
-reg_p3_2s$coefficients
+modelo_p3_1s$coefficients
+modelo_p3_2s$coefficients
 
 
 ## Revisando el ajuste intramodelo
 
-log_s_hat_1 <- predict(reg_p3_1s, newdata = datos1)
-log_s_hat_2  <- predict(reg_p3_2s, newdata = datos2)
+log_s_hat_1 <- predict(modelo_p3_1s, newdata = datos1)
+log_s_hat_2  <- predict(modelo_p3_2s, newdata = datos2)
 
 MSE_1s <- mean((log_s1 - log_s_hat_1)^2)
 MSE_2s <- mean((log_s2 - log_s_hat_2)^2)
@@ -357,8 +362,8 @@ MSE_2s <- mean((log_s2 - log_s_hat_2)^2)
 MSE_1s
 MSE_2s
 
-## En este caso el MSE 2s se ajusta mejor y nos va mejor en el modelo de medias. 
-## Nos casamos con el modelo de medias (datos4)
+## En este caso el MSE2s se ajusta mejor y nos va mejor en el modelo de medias. 
+## Nos casamos con el modelo de medias (datos2)
 
 
 ## Ahora desarrollamos una grafica para ver cual es el valor del punto pico del ingreso estimado en terminos de la edad.
@@ -421,11 +426,12 @@ ggplot(data.frame(edad_max_boot_p3_s), aes(x = edad_max_boot_p3_s)) +
 ## Hacemos la regresion
 
 datos2 <- datos2 %>%
-  mutate(female = ifelse(sex == 0, 1, 0))
+  mutate(female = ifelse(gender == 0, 1, 0))
 
-reg_p4 <- lm(log_s2~female, data=datos2)
+reg_p4 <- log_s2~female
+modelo_p4_1 <- lm(log_s2~female, data=datos2)
 
-stargazer(reg_p4, type = "text", title = "Logaritmo del salario en funcion del genero")
+stargazer(modelo_p4_1, type = "text", title = "Logaritmo del salario en funcion del genero")
 
 ## Teorema FWL
 
@@ -448,9 +454,9 @@ x1_resid
 y_resid <- regaux_p4_y$residuals
 y_resid
 
-reg_p4_fwl <- lm(y_resid~x1_resid, data=datos2)
-stargazer(reg_p4_controles,reg_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
-
+reg_p4_fwl <- y_resid~x1_resid
+modelo_p4_fwl <- lm(reg_p4_fwl, data=datos2)
+stargazer(reg_p4_controles, modelo_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
 
 
 # Teorema FWL con bootstrap
@@ -583,27 +589,27 @@ parametros <- theme_minimal(base_size = 12) +
 
 graph_female <- ggplot(data.frame(edad_max_female), aes(x = edad_max_female)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30, 
-                 fill = color_fill, color = "white", alpha = 0.8) +
-  geom_density(color = color_density, linewidth = 1) +
+                 fill = "lightblue", color = "white", alpha = 0.8) +
+  geom_density(color = "blue", linewidth = 1) +
   geom_vline(aes(xintercept = mean(edad_max_female)), 
-             color = color_mean, linetype = "dashed", linewidth = 1.2) +
+             color = "red", linetype = "dashed", linewidth = 1.2) +
   geom_vline(aes(xintercept = CF_female[1]), 
-             color = color_ci, linetype = "dotted", linewidth = 1.2) +
+             color = "black", linetype = "dotted", linewidth = 1.2) +
   geom_vline(aes(xintercept = CF_female[2]), 
-             color = color_ci, linetype = "dotted", linewidth = 1.2) +
+             color = "black", linetype = "dotted", linewidth = 1.2) +
   labs(title = "A. Mujeres", x = "Edad máxima estimada", y = "Densidad") +
   parametros
 
 graph_male <- ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30, 
-                 fill = color_fill, color = "white", alpha = 0.8) +
-  geom_density(color = color_density, linewidth = 1) +
+                 fill = "lightblue", color = "white", alpha = 0.8) +
+  geom_density(color = "blue", linewidth = 1) +
   geom_vline(aes(xintercept = mean(edad_max_male)), 
-             color = color_mean, linetype = "dashed", linewidth = 1.2) +
+             color = "red", linetype = "dashed", linewidth = 1.2) +
   geom_vline(aes(xintercept = CF_male[1]), 
-             color = color_ci, linetype = "dotted", linewidth = 1.2) +
+             color = "black", linetype = "dotted", linewidth = 1.2) +
   geom_vline(aes(xintercept = CF_male[2]), 
-             color = color_ci, linetype = "dotted", linewidth = 1.2) +
+             color = "black", linetype = "dotted", linewidth = 1.2) +
   labs(title = "B. Hombres", x = "Edad máxima estimada", y = "Densidad") +
   parametros
 
@@ -621,3 +627,47 @@ graph_male <- ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 5 ------------------------- ##
 # ------------------------------------------------------------- #
+
+set.seed(10101)
+## ------------------- ##
+## ---- Punto 5.1 ---- ## 
+## ------------------- ##
+
+# Partimos nuestros datos en training y test
+
+inTrain <- createDataPartition(
+  y = datos2$y_ingLab_m_ha,  ## the outcome data are needed
+  p = .70, ## The percentage of training data
+  list = FALSE
+)
+
+# Definimos el subset de test y training
+train <- datos2 %>%  filter(row_number() %in% inTrain)
+test <- datos2 %>% filter(!row_number() %in% inTrain)
+
+# Podemos visualizar los datos
+split_data <- data.frame(
+  Split = factor(c("Training", "Testing")),
+  Count = c(nrow(train), nrow(test)),
+  Percentage = c(nrow(train)/nrow(datos2)*100, nrow(test)/nrow(datos2)*100)
+)
+
+ggplot(split_data, aes(x = Split, y = Count)) +
+  geom_bar(stat = "identity", fill = "darkblue", width = 0.5) +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%\n(n=", Count, ")")), 
+            vjust = -0.5, color = "black", size = 4) +
+  labs(title = "Train-Test Split Distribution",
+       y = "Number of Observations",
+       x = "") +
+  theme_bw() +
+  ylim(0, max(split_data$Count) * 1.2)
+
+## ------------------- ##
+## ---- Punto 5.2 ---- ## 
+## ------------------- ##
+
+# Performance modelos anteriores y modelos adicionales
+# MODELOS:
+modelo1 <- lm(reg_p3_2s, data = train)
+modelo2 <- lm(reg_p4, data = train)
+modelo3 <- lm(reg_p4_fwl, data = train)
