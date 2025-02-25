@@ -29,7 +29,8 @@ pacman::p_load(
   ggplot2,      # Gráficos (ya incluido en tidyverse)
   boot,         # Funciones de bootstrap
   patchwork,    # Combinación de gráficos
-  caret         # For predictive model assessment
+  caret,         # For predictive model assessment
+  purrr
  )
 
 
@@ -901,7 +902,7 @@ set.seed(10101)
 # Partimos nuestros datos en training y test
 
 inTrain <- createDataPartition(
-  y = datos2$y_ingLab_m_ha,  ## the outcome data are needed
+  y = datos2$log_s2,  ## the outcome data are needed
   p = .70, ## The percentage of training data
   list = FALSE
 )
@@ -932,7 +933,22 @@ ggplot(split_data, aes(x = Split, y = Count)) +
 ## ------------------- ##
 
 # Performance modelos anteriores y modelos adicionales
-# MODELOS:
+# MODELOS
 modelo1 <- lm(reg_p3_2s, data = train)
 modelo2 <- lm(reg_p4, data = train)
 modelo3 <- lm(reg_p4_fwl, data = train)
+
+# Performance (fuera de muestra)
+predictions <- list(
+  pred1 = predict(modelo1, test),
+  pred2 = predict(modelo2, test),
+  pred3 = predict(modelo3, test)
+)
+
+# Calcular RMSE sin volver a aplicar `predict()`
+performance <- tibble(
+  modelo = names(predictions),
+  RMSE = map_dbl(predictions, ~ RMSE(.x, test$log_s2))
+)
+
+performance
