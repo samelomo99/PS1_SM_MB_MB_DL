@@ -80,7 +80,6 @@ datos <- datos %>%
     orden,         # Llave de persona
     secuencia_p,   # Llave de hogar
     y_ingLab_m_ha,
-    y_total_m_ha,
     y_salary_m_hu,
     sex,
     age,
@@ -95,7 +94,6 @@ datos <- datos %>%
     cuentaPropia,
     sizeFirm,
     cotPension,
-    p6426,
     ocu,
     pea,
     regSalud
@@ -224,7 +222,11 @@ corrplot(M)
 #   haremos algunas exploraciones de outliers y su respectivo manejo 
 
 
-#Corrigiendo missing años de educacion           
+##########################
+#PREPARACIÓN DE LOS DATOS
+##########################
+
+### 1) maxEducLevel         
 
 ggplot(datos, aes(maxEducLevel)) +
   geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -239,7 +241,9 @@ mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[
 
 # Imputing the missing value. 
 datos <- datos  %>%
-  mutate(maxEducLevel = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
+  mutate(maxEducLevel_im = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
+
+###  2) regSalud
 
 # Corrigiendo missing en regSalud
 #regSalud 1 r. contributivo
@@ -247,11 +251,13 @@ datos <- datos  %>%
 #regSalud 3 r. subsidiado
 #regSalud 9 N/A
 
-#tabla cruzada para verificar que caracteristiscas tienen aquellos con missing en RegSalud
+# numero de missing 
+datos %>% 
+  summarise(total_na = sum(is.na(regSalud)))
 
+#tabla cruzada para verificar que caracteristiscas tienen aquellos con missing en RegSalud
 datos <- datos %>%
   mutate(regSalud_status = ifelse(is.na(regSalud), "Missing", "Not Missing"))
-
 
 # a) Para la variable formal (=1 if formal (social security); =0 otherwise)
 table_formal <- table(datos$regSalud_status, datos$formal)
@@ -283,12 +289,117 @@ print(table_sizefirm)
 # adecuado reemplazar con la moda, en el directorio de variables, estos
 # corresponderian a la categoria No Aplica=9 
 datos <- datos %>%
-  mutate(regSalud = ifelse(is.na(regSalud), 9, regSalud))
+  mutate(regSalud_im = ifelse(is.na(regSalud), 9, regSalud))
 
 table(datos$regSalud)
 
-#Explorando variable de resultado y_ingLab_m_ha: correccion de missing y otuliers
+### 3)CotPension
 
+##revisamos la variable cotPension
+table(datos$cotPension)
+
+#observamos que 380 aparecen como pensionados, en teoria ya no tendrian salario
+# verificamos que no sean personas por debajo de edad pension mujer<57 y hombre<62
+
+datos <- datos %>%
+  mutate(pension_status = case_when(
+    cotPension == 3 & ((gender == 0 & age <= 56) | (gender == 1 & age <= 61)) ~ 1,
+    cotPension == 3 & ((gender == 0 & age >= 57) | (gender == 1 & age >= 62)) ~ 2,
+    cotPension %in% c(1, 2) ~ 3,
+    TRUE ~ 3
+  ))
+
+table(datos$pension_status)
+
+# crosstab entre pensionados validos (2) y no valido(1) y relab
+tabla_cruzada <- datos %>%
+  filter(pension_status %in% c(1, 2)) %>%
+  with(table(relab, pension_status))
+print(tabla_cruzada)
+
+# crosstab entre ingreso y pension status
+resumen <- datos %>%
+  filter(pension_status %in% c(1, 2)) %>%
+  group_by(pension_status) %>%
+  summarise(
+    n_con_info = sum(!is.na(y_ingLab_m_ha)),
+    n_sin_info = sum(is.na(y_ingLab_m_ha))
+  )
+print(resumen)
+
+#crosstab entre pension_status y relab
+tabla_cruzada <- with(datos[datos$pension_status %in% c(1, 2), ], table(pension_status, relab))
+print(tabla_cruzada)
+
+resumen <- datos %>%
+  filter(pension_status %in% c(1, 2)) %>%
+  mutate(info_ingreso = ifelse(is.na(y_ingLab_m_ha), "Sin info", "Con info")) %>%
+  group_by(pension_status, info_ingreso) %>%
+  summarise(cantidad = n(), .groups = "drop")
+print(resumen)
+
+##corrigiendo datos mal clasificados
+
+table(datos$cotPension)
+#recodificamos cotPension=1 cuando pension_status=1
+datos <- datos %>%
+  mutate(cotPension_im = ifelse(pension_status == 1, 1, cotPension))
+table(datos$cotPension)
+
+
+### 4) relab 
+# la variable relab me indica el tipo de relacion laboral,
+# se considera eliminar registros cuya categoria es 6 y 7, y no tiene
+# informacion de ingreso ya que por definición no generan 
+#remuneración que se pueda modelar.
+
+table(datos$relab)
+
+tabla_resumen <- datos %>%
+  filter(relab %in% c(6, 7)) %>%
+  group_by(relab, missing = is.na(y_ingLab_m_ha)) %>%
+  summarise(cantidad = n(), .groups = "drop")
+
+print(tabla_resumen)
+
+#se eliminan los casos donde relab 6 o 7 (no remuerado) y no tiene informacion deingresos
+datos <- datos %>% 
+  filter(!(relab %in% c(6, 7) & is.na(y_ingLab_m_ha)))          
+
+### 5) y_ingLab_m_ha
+
+# Numero de missing de la variable 
+is.na(datos$y_ingLab_m_ha) %>% table()
+
+#distribucion de la variable ingreso 
+
+ggplot(datos, aes(y_ingLab_m_ha)) +
+  geom_histogram(color = "#000000", fill = "#0099F8") +
+  geom_vline(xintercept = median(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = mean(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+  ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 18))
+
+#dado que la distribucion de la variable tiene una cola larga a la derecha es mas adecuado usar la mediana
+# como metodo para imputar observaciones faltantes
+datos <- datos  %>%
+  mutate(y_ingLab_m_ha_im = ifelse(is.na(y_ingLab_m_ha) == TRUE, median(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
+
+ggplot(datos, aes(y_ingLab_m_ha_im)) +
+  geom_histogram(color = "#000000", fill = "#0099F8") +
+  geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+  ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 18))
+
+summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
+
+# gráfico de missing values
+plot_missing(datos)
+
+#manejo de outliers 
 
 
 
