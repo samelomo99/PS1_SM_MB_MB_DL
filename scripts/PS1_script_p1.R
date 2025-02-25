@@ -933,22 +933,37 @@ ggplot(split_data, aes(x = Split, y = Count)) +
 ## ------------------- ##
 
 # Performance modelos anteriores y modelos adicionales
-# MODELOS
+# MODELOS ANTERIORES
 modelo1 <- lm(reg_p3_2s, data = train)
 modelo2 <- lm(reg_p4, data = train)
 modelo3 <- lm(reg_p4_fwl, data = train)
+
+# MODELOS ADICIONALES
+modelo4 <- lm(log_s2 ~ age + I(age^2) + female, data = train)
+modelo5 <- lm(log_s2 ~ age + I(age^2) + female + (age * female), data = train) # interacción female x age
+modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + oficio + estrato1, data = train) # controles
+modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + sizeFirm, data = train) # controles firma
+
+stargazer(modelo4, modelo5, type = "text")
 
 # Performance (fuera de muestra)
 predictions <- list(
   pred1 = predict(modelo1, test),
   pred2 = predict(modelo2, test),
-  pred3 = predict(modelo3, test)
+  pred3 = predict(modelo3, test),
+  pred4 = predict(modelo4, test),
+  pred5 = predict(modelo5, test),
+  pred6 = predict(modelo6, test),
+  pred7 = predict(modelo7, test)
 )
 
 # Calcular RMSE sin volver a aplicar `predict()`
 performance <- tibble(
   modelo = names(predictions),
-  RMSE = map_dbl(predictions, ~ RMSE(.x, test$log_s2))
+  RMSE = map_dbl(predictions, ~ round(RMSE(.x, test$log_s2), 5))
 )
+
+performance <- performance %>%
+  mutate(RMSE = format(RMSE, nsmall = 5))
 
 performance
