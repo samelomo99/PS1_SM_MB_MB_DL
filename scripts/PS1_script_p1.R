@@ -368,38 +368,192 @@ datos <- datos %>%
 
 ### 5) y_ingLab_m_ha
 
-# Numero de missing de la variable 
-is.na(datos$y_ingLab_m_ha) %>% table()
+    # Numero de missing de la variable 
+    is.na(datos$y_ingLab_m_ha) %>% table()
+    
+    #distribucion de la variable ingreso 
+    
+    ggplot(datos, aes(y_ingLab_m_ha)) +
+      geom_histogram(color = "#000000", fill = "#0099F8") +
+      geom_vline(xintercept = median(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "red") +
+      geom_vline(xintercept = mean(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+      ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+      theme_classic() +
+      theme(plot.title = element_text(size = 18))
+    
+    #dado que la distribucion de la variable tiene una cola larga a la derecha es mas adecuado usar la mediana
+    # como metodo para imputar observaciones faltantes
+    datos <- datos  %>%
+      mutate(y_ingLab_m_ha_im = ifelse(is.na(y_ingLab_m_ha) == TRUE, median(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
+    
+    ggplot(datos, aes(y_ingLab_m_ha_im)) +
+      geom_histogram(color = "#000000", fill = "#0099F8") +
+      geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
+      geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+      ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+      theme_classic() +
+      theme(plot.title = element_text(size = 18))
+    
+    summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
+    
+    # gráfico de missing values
+    plot_missing(datos)
+    
+    ###manejo de outliers variable ingreso por hora
+    
+    # Librerías necesarias
+    library(dplyr)
+    library(ggplot2)
+    library(gridExtra)
+    
+    # 1. Exploración inicial de la variable de ingreso
+    summary(datos$y_ingLab_m_ha_im)
+    boxplot(datos$y_ingLab_m_ha_im, main = "Boxplot de y_ingLab_m_ha_im (imputada)")
+    
+    # 2. Definimos los umbrales para marcar outliers (1% y 99%)
+    p_inferior <- 0.01
+    p_superior <- 0.99
+    
+    umbral_inferior <- quantile(datos$y_ingLab_m_ha_im, probs = p_inferior, na.rm = TRUE)
+    umbral_superior <- quantile(datos$y_ingLab_m_ha_im, probs = p_superior, na.rm = TRUE)
+    
+    # Filtrar registros que están por debajo o por encima de dichos umbrales
+    extremos <- datos %>%
+      filter(y_ingLab_m_ha_im < umbral_inferior | y_ingLab_m_ha_im > umbral_superior)
+    
+    n_extremos <- nrow(extremos)
+    cat("Número de registros outliers (1% - 99%):", n_extremos, "\n")
+    summary(extremos$y_ingLab_m_ha_im)
+    
+    # 2.1. Revisión específica del límite inferior
+    extremos_inferior <- datos %>%
+      filter(y_ingLab_m_ha_im < umbral_inferior)
+    
+    n_inferior <- nrow(extremos_inferior)
+    cat("Número de observaciones por debajo del límite inferior (1%):", n_inferior, "\n")
+    summary(extremos_inferior$y_ingLab_m_ha_im)
+    
+    # 2.2. Resumen de outliers por oficio
+    tabla_extremos_oficio <- table(extremos$oficio)
+    print(tabla_extremos_oficio)
+    
+    resumen_extremos_oficio <- extremos %>%
+      group_by(oficio) %>%
+      summarise(
+        count        = n(),
+        mean_outlier = mean(y_ingLab_m_ha_im, na.rm = TRUE),
+        max_outlier  = max(y_ingLab_m_ha_im, na.rm = TRUE)
+      )
+    print(resumen_extremos_oficio)
+    
+    # 3. Visualización en escala original
+    
+    # 3.1. Boxplot con líneas de percentil 1% y 99%
+    b <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
+      geom_boxplot() +
+      theme_bw() +
+      ggtitle("Boxplot de y_ingLab_m_ha_im (Escala original)") +
+      ylab("Ingreso por hora (original)") +
+      xlab("") +
+      geom_hline(yintercept = umbral_inferior, linetype = "solid", color = "blue", linewidth = 0.7) +
+      geom_hline(yintercept = umbral_superior, linetype = "solid", color = "blue", linewidth = 0.7)
+    
+    # 3.2. Boxplot con líneas de media ± 2*sd
+    mean_val <- mean(datos$y_ingLab_m_ha_im, na.rm = TRUE)
+    sd_val   <- sd(datos$y_ingLab_m_ha_im, na.rm = TRUE)
+    low_2sd  <- mean_val - 2 * sd_val
+    up_2sd   <- mean_val + 2 * sd_val
+    
+    c <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
+      geom_boxplot() +
+      theme_bw() +
+      ggtitle("Boxplot (Media ± 2*SD) - Escala original") +
+      ylab("Ingreso por hora (original)") +
+      xlab("") +
+      geom_hline(yintercept = low_2sd, linetype = "solid", color = "red", size = 0.7) +
+      geom_hline(yintercept = up_2sd,  linetype = "solid", color = "red", size = 0.7)
+    
+    grid.arrange(b, c, ncol = 2)
+    
+    # 4. Marcar outliers en la base de datos (según media ± 2*sd, por ejemplo)
+    datos <- datos %>% 
+      mutate(out_y_ingLab_m_ha_im = ifelse(y_ingLab_m_ha_im < low_2sd | y_ingLab_m_ha_im > up_2sd, 1, 0))
+    
+    # 5. Visualización en escala logarítmica
+    
+    # La variable ingreso por hora presenta una gran asimetría 
+    # (la mediana es 5.055 mientras que el máximo es 350.583), 
+    # la mayoría de los datos se concentran en un rango bajo y 
+    # unos pocos valores extremos elevan la media. Esto sugiere 
+    # que para visualizar adecuadamente la distribución, sería 
+    # recomendable usar una transformación logarítmica en el eje y.
+    # la transformación logarítmica ayuda a "comprimir" la escala de los 
+    # valores extremos y a visualizar mejor la dispersión de la mayoría de 
+    # los datos.
+    
+    # 5.1. Boxplot con percentiles 1% y 99% (escala log)
+    plot1 <- ggplot(datos, aes(x = "", y = y_ingLab_m_ha_im)) +
+      geom_boxplot() +
+      scale_y_log10() +
+      theme_bw() +
+      ggtitle("Boxplot (Percentiles 1% y 99%) - Escala log") +
+      ylab("Salario por hora (log10)") +
+      xlab("") +
+      geom_hline(yintercept = umbral_inferior, linetype = "solid", color = "blue", size = 0.7) +
+      geom_hline(yintercept = umbral_superior, linetype = "solid", color = "blue", size = 0.7)
+    
+    # 5.2. Boxplot con media ± 2*sd calculados sobre los datos log
+    log_data <- log10(datos$y_ingLab_m_ha_im)
+    mean_log <- mean(log_data, na.rm = TRUE)
+    sd_log   <- sd(log_data, na.rm = TRUE)
+    low_log  <- 10^(mean_log - 2 * sd_log)
+    up_log   <- 10^(mean_log + 2 * sd_log)
+    
+    plot2 <- ggplot(datos, aes(x = "", y = y_ingLab_m_ha_im)) +
+      geom_boxplot() +
+      scale_y_log10() +
+      theme_bw() +
+      ggtitle("Boxplot (Media ± 2*SD) - Escala log") +
+      ylab("Salario por hora (log10)") +
+      xlab("") +
+      geom_hline(yintercept = low_log, linetype = "solid", color = "red", size = 0.7) +
+      geom_hline(yintercept = up_log,  linetype = "solid", color = "red", size = 0.7)
+    
+    grid.arrange(plot1, plot2, ncol = 2)  
+    
+    
+    
+    #### Despues de revisar se observa que los valores altos de salario 
+    ##   por son viables, sin embargo, hay valore extremadamente bajo
+    #    si bien, es posible que se deba a errores de digitación(falta un cero)
+    #    es dificil comprobar con la informacion disponible, lo conveniente seria
+    #    excluir aquellas observaciones con valores muy pequeños 
+    
+    extremos_inferior$y_ingLab_m_ha_im
+    
+    ## 6. winsorizing 
+    
+    # Calcular el valor del percentil 5
+    p5 <- quantile(datos$y_ingLab_m_ha_im, 0.05, na.rm = TRUE)
+    
+    # Filtrar las observaciones que estén en o por debajo de ese valor
+    ingreso_p5 <- datos %>%
+      filter(y_ingLab_m_ha_im <= p5)
+    
+    # Ver cuántos registros hay y revisar sus valores
+    nrow(ingreso_p5)
+    summary(ingreso_p5$y_ingLab_m_ha_im)
+    
+    #Crear la variable winsorizada solo para la cola inferior
+    datos <- datos %>%
+      mutate(y_ingLab_m_ha_wins = ifelse(
+        y_ingLab_m_ha_im < p5, p5, y_ingLab_m_ha_im
+      ))
+    
+    # 3. Comparar estadísticas entre la variable original y la variable recortada
+    summary(datos$y_ingLab_m_ha_im)
+    summary(datos$y_ingLab_m_ha_wins)
 
-#distribucion de la variable ingreso 
-
-ggplot(datos, aes(y_ingLab_m_ha)) +
-  geom_histogram(color = "#000000", fill = "#0099F8") +
-  geom_vline(xintercept = median(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "red") +
-  geom_vline(xintercept = mean(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "blue") +  
-  ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
-  theme_classic() +
-  theme(plot.title = element_text(size = 18))
-
-#dado que la distribucion de la variable tiene una cola larga a la derecha es mas adecuado usar la mediana
-# como metodo para imputar observaciones faltantes
-datos <- datos  %>%
-  mutate(y_ingLab_m_ha_im = ifelse(is.na(y_ingLab_m_ha) == TRUE, median(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
-
-ggplot(datos, aes(y_ingLab_m_ha_im)) +
-  geom_histogram(color = "#000000", fill = "#0099F8") +
-  geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
-  geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
-  ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
-  theme_classic() +
-  theme(plot.title = element_text(size = 18))
-
-summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
-
-# gráfico de missing values
-plot_missing(datos)
-
-#manejo de outliers 
 
 
 
