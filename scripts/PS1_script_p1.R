@@ -555,6 +555,41 @@ datos <- datos %>%
     # 3. Comparar estadísticas entre la variable original y la variable recortada
     summary(datos$y_ingLab_m_ha_im)
     summary(datos$y_ingLab_m_ha_wins)
+    
+    
+    
+    ############################################
+    #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
+    ############################################       
+    
+    library(dplyr)       # Manipulación de datos
+    library(ggplot2)     # Gráficos
+    library(gridExtra)   # Disposición de gráficos en grilla
+    library(knitr)       # kable() para generar tablas en LaTeX
+    library(kableExtra)  # Opciones adicionales para kable()
+    library(summarytools)
+    
+    
+    #Generamos summary general de las variables modificadas y de interes
+    
+    variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
+                                 "gender", "estrato1", "formal", 
+                                 "sizeFirm", "H_Head", "Head_Female", 
+                                 "maxEducLevel_im", "regSalud_im", "cotPension_im","relab","oficio")
+    datos_sub <- datos[, variables_seleccionadas]
+    resumen <- dfSummary(datos_sub, style = "grid", plain.ascii = FALSE)
+    print(resumen, method = "browser")
+    
+    #Analisis descriptivos adicionales 
+    
+    # Variables numéricas
+    numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")    
+    
+    # Variables categóricas
+    categorical_vars <- c("gender", "estrato1", "relab", "formal", "sizeFirm",
+                          "H_Head", "Head_Female", "maxEducLevel_im", 
+                          "regSalud_im", "cotPension_im")
+    
 
 ##################################
 #esto ya se hizo en la linea 151-152
