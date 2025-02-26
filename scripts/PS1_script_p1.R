@@ -614,6 +614,10 @@ datos1 <- datos %>% filter(!is.na(y_ingLab_m_ha))
 m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
 datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
 
+# Eliminamos NA de maxEducLevel
+datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
+
+
 # Revisión rápida de los datos
 skim(datos1)
 skim(datos2)
@@ -976,10 +980,9 @@ modelo3 <- lm(reg_p4_fwl, data = train)
 # MODELOS ADICIONALES
 modelo4 <- lm(log_s2 ~ age + I(age^2) + female, data = train)
 modelo5 <- lm(log_s2 ~ age + I(age^2) + female + (age * female), data = train) # interacción female x age
-modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + oficio + estrato1, data = train) # controles
-modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + sizeFirm, data = train) # controles firma
-
-stargazer(modelo4, modelo5, type = "text")
+modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + oficio + estrato1, data = train) # controles principales
+modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + nmenores + sizeFirm, data = train) # controles secundarios
+modelo8 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + I(maxEducLevel^2) + (maxEducLevel * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm, data = train) # interacción y forma polinomial 
 
 # Performance (fuera de muestra)
 predictions <- list(
@@ -989,7 +992,8 @@ predictions <- list(
   pred4 = predict(modelo4, test),
   pred5 = predict(modelo5, test),
   pred6 = predict(modelo6, test),
-  pred7 = predict(modelo7, test)
+  pred7 = predict(modelo7, test),
+  pred8 = predict(modelo8, test)
 )
 
 # Calcular RMSE sin volver a aplicar `predict()`
@@ -1002,3 +1006,67 @@ performance <- performance %>%
   mutate(RMSE = format(RMSE, nsmall = 5))
 
 performance
+
+# Identificamos el modelo con menor RMSE
+sorted_indices <- order(performance$RMSE)
+best_model1 <- performance$modelo[sorted_indices[1]]
+best_model1
+best_model2 <- performance$modelo[sorted_indices[2]]
+best_model2
+
+# Extraemos los errores de predicción
+best_predictions <- predictions[[best_model1]]
+test$prediction_error <- test$log_s2 - best_predictions
+summary(test$prediction_error)
+
+# Visualización
+# Histograma de los errores
+ggplot(test, aes(x = prediction_error)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", alpha = 0.5) +
+  geom_vline(xintercept = mean(test$prediction_error), color = "red", linetype = "dashed") +
+  labs(title = "Distribución de Errores de Predicción", x = "Error", y = "Frecuencia")
+
+# Boxplot para detectar outliers
+ggplot(test, aes(y = prediction_error)) +
+  geom_boxplot(fill = "orange", alpha = 0.6) +
+  labs(title = "Boxplot de Errores de Predicción", y = "Error")
+
+## ------------------- ##
+## ---- Punto 5.3 ---- ## 
+## ------------------- ##
+form_8 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + I(maxEducLevel^2) + (maxEducLevel * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm
+form_7 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + nmenores + sizeFirm
+
+
+
+# Entrenamos los modelos - Metodología LOOCV
+
+ctrl <- trainControl(
+  method = "LOOCV") ## input the method Leave One Out Cross Validation
+
+# Start timing
+start_time <- Sys.time()
+
+# Get total number of observations for progress tracking
+n_obs <- nrow(datos2)
+cat("Starting LOOCV training with", n_obs, "iterations...\n")
+
+# Train model with progress printing
+ctrl$verboseIter <- TRUE  # Enable progress printing
+modelo1_LOOCV <- train(form_8,
+                  data = datos2,
+                  method = 'lm', 
+                  trControl = ctrl)
+
+modelo2_LOOCV <- train(form_7,
+                       data = datos2,
+                       method = 'lm', 
+                       trControl = ctrl)
+
+# Vemos el performance
+perf1_LOOCV <- RMSE(modelo1_LOOCV$pred$pred, datos2$log_s2)
+perf1_LOOCV
+
+perf2_LOOCV <- RMSE(modelo2_LOOCV$pred$pred, datos2$log_s2)
+perf2_LOOCV
+
