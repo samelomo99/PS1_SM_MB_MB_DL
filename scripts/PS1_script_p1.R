@@ -383,6 +383,13 @@ datos <- datos %>%
       theme_classic() +
       theme(plot.title = element_text(size = 18))
     
+    ##(aseguramos que los missing no sean porque son trabajadores no remunerados
+    
+    trabj_noremuner <- subset(datos, relab == 6 & is.na(y_ingLab_m_ha))
+    cantidad <- nrow(trabj_noremuner)
+    print(paste("La cantidad de personas con relab=6 y y_ingLab_m_ha missing es:", cantidad))
+    
+    
     #dado que la distribucion de la variable tiene una cola larga a la derecha es mas adecuado usar la mediana
     # como metodo para imputar observaciones faltantes
     datos <- datos  %>%
@@ -591,6 +598,534 @@ datos <- datos %>%
                           "regSalud_im", "cotPension_im")
     
 
+    
+    # Etiquetas de las variables
+    
+    
+    datos_sub$gender <- factor(datos_sub$gender,
+                               levels = c(0, 1),
+                               labels = c("Mujer", "Hombre"))
+    
+    # H_Head: 1=Jefe de hogar, 0=Otro
+    datos_sub$H_Head <- factor(datos_sub$H_Head,
+                               levels = c(0, 1),
+                               labels = c("Otro", "Jefe de hogar"))
+    
+    # estrato1: 1=Estrato 1, 2=Estrato 2, 3=Estrato 3, 4=Estrato 4, 5=Estrato 5, 6=Estrato 6
+    datos_sub$estrato1 <- factor(datos_sub$estrato1,
+                                 levels = c(1, 2, 3, 4, 5, 6),
+                                 labels = c("Estrato 1", "Estrato 2", "Estrato 3",
+                                            "Estrato 4", "Estrato 5", "Estrato 6"))
+    
+    # relab: 1=Obrero..., 2=Obrero..., etc.
+    datos_sub$relab <- factor(datos_sub$relab,
+                              levels = c(1, 2, 3, 4, 5, 6, 9),
+                              labels = c("Obrero/emp. empresa particular",
+                                         "Obrero/emp. gobierno",
+                                         "Empleado doméstico",
+                                         "Trabajador cuenta propia",
+                                         "Patrón o empleador",
+                                         "Trabajador familiar sin remuneración",
+                                         "Otro"))
+    
+    # formal: 1=formal (seguridad social), 0=otro
+    datos_sub$formal <- factor(datos_sub$formal,
+                               levels = c(0, 1),
+                               labels = c("Otro", "Formal (seguridad social)"))
+    
+    # sizeFirm: 1= self-employed, 2= 2-5 trabajadores, etc.
+    datos_sub$sizeFirm <- factor(datos_sub$sizeFirm,
+                                 levels = c(1, 2, 3, 4, 5),
+                                 labels = c("Self-employed",
+                                            "2-5 trabajadores",
+                                            "6-10 trabajadores",
+                                            "11-50 trabajadores",
+                                            ">50 trabajadores"))
+    
+    # Head_Female: 1=Jefe de hogar mujer, 0=Otro
+    datos_sub$Head_Female <- factor(datos_sub$Head_Female,
+                                    levels = c(0, 1),
+                                    labels = c("Otro", "Jefe de hogar mujer"))
+    
+    # maxEducLevel_im: 1=Ninguno, 2=Preescolar, etc.
+    datos_sub$maxEducLevel_im <- factor(datos_sub$maxEducLevel_im,
+                                        levels = c(1, 2, 3, 4, 5, 6, 7, 9),
+                                        labels = c("Ninguno",
+                                                   "Preescolar",
+                                                   "Primaria incompleta (1-4)",
+                                                   "Primaria completa (5)",
+                                                   "Secundaria incompleta (6-10)",
+                                                   "Secundaria completa (11)",
+                                                   "Terciario",
+                                                   "N/A"))
+    
+    # regSalud_im: 1=r. contributivo, 2=r. especial, etc.
+    datos_sub$regSalud_im <- factor(datos_sub$regSalud_im,
+                                    levels = c(1, 2, 3, 9),
+                                    labels = c("R. contributivo",
+                                               "R. especial",
+                                               "R. subsidiado",
+                                               "N/A"))
+    
+    # cotPension_im: 1=cotiza pension, 2=no cotiza, etc.
+    datos_sub$cotPension_im <- factor(datos_sub$cotPension_im,
+                                      levels = c(1, 2, 3, 9),
+                                      labels = c("Cotiza pensión",
+                                                 "No cotiza pensión",
+                                                 "Pensionado",
+                                                 "N/A"))
+    
+    
+    # Resumen descriptivo de variables numéricas
+    
+    # estadísticas de cada variable numérica
+    numeric_summary <- datos_sub %>%
+      select_at(numeric_vars) %>%     # Seleccionar las columnas definidas en numeric_vars
+      pivot_longer(cols = everything(), 
+                   names_to = "Variable", 
+                   values_to = "Valor") %>% 
+      
+      #etiquetas de las variables 
+      mutate(Variable = dplyr::recode(Variable,
+                                      "age" = "Edad (años)",
+                                      "nmenores" = "Número de menores",
+                                      "y_ingLab_m_ha_wins" = "Salario por Hora(todas las ocupaciones)"
+      )) %>%
+      group_by(Variable) %>% 
+      summarise(
+        n      = n(),
+        Mean   = mean(Valor, na.rm = TRUE),
+        SD     = sd(Valor, na.rm = TRUE),
+        Min    = min(Valor, na.rm = TRUE),
+        Median = median(Valor, na.rm = TRUE),
+        Max    = max(Valor, na.rm = TRUE),
+        .groups = "drop"
+      )
+    
+    # Visualizar en la consola (como data frame)
+    numeric_summary
+    numeric_summary %>% 
+      kable(format = "pandoc")
+    
+    # Generar la salida en formato LaTeX (para Overleaf)
+    numeric_summary %>% 
+      kable(format = "latex", booktabs = TRUE,
+            caption = "Resumen de Variables Numéricas") %>% 
+      kable_styling(latex_options = c("striped", "hold_position"))
+    
+    ##grafico edad 
+    
+    library(ggplot2)
+    
+    p <- ggplot(datos_sub, aes(x = "", y = age)) +
+      geom_boxplot(fill = "skyblue", outlier.shape = 16, outlier.alpha = 0.6) +
+      scale_y_continuous(limits = c(min(datos_sub$age, na.rm = TRUE), 
+                                    max(datos_sub$age, na.rm = TRUE))) +
+      labs(
+        title = "Boxplot de Edad",
+        x = "",
+        y = "Edad"
+      ) +
+      theme_minimal()
+    
+    print(p)
+    
+    ggsave("boxplot_edad.pdf", plot = p, device = "pdf", width = 6, height = 4)
+    
+    
+    
+    #edad y sexo 
+    boxplot(age ~ factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
+            data = datos,
+            xlab = "Género",
+            ylab = "Edad (años)")
+    
+    #edad y jefatura 
+    
+    boxplot(age ~ factor(H_Head, levels = c(1, 0), labels = c("Jefe de hogar", "Otro")),
+            data = datos,
+            xlab = "Jefatura de hogar",
+            ylab = "Edad (años)")
+    
+    
+    ## grafico ingreso
+    
+    ##distribucio ingreso 
+    
+    library(ggplot2)
+    
+    ggplot(datos_sub, aes(x = y_ingLab_m_ha_wins)) +
+      geom_histogram(aes(y = ..density..),
+                     bins = 30,
+                     fill = "skyblue",
+                     color = "black",
+                     alpha = 0.7) +
+      geom_density(color = "red", size = 1) +
+      labs(title = "Distribución del Ingreso Laboral",
+           x = "Ingreso laboral por hora",
+           y = "Densidad") +
+      theme_minimal() +
+      scale_x_continuous(trans = "log10")  # Escala logarítmica en eje x, opcional
+    
+    ##bloxplot ingreso 
+    umbral_inferior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.01, na.rm = TRUE)
+    umbral_superior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.99, na.rm = TRUE)
+    
+    # 2) escala original (percentiles 1% y 99%)
+    e <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
+      geom_boxplot() +
+      theme_bw() +
+      ggtitle("Boxplot (Escala original): Percentil 1% y 99%") +
+      ylab("Ingreso por hora (original)") +
+      xlab("") +
+      geom_hline(yintercept = umbral_inferior, linetype = "solid",
+                 color = "blue", linewidth = 0.7) +
+      geom_hline(yintercept = umbral_superior, linetype = "solid",
+                 color = "blue", linewidth = 0.7)
+    
+    # Boxplot en escala logarítmica (percentiles 1% y 99%)
+    
+    e_log <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
+      geom_boxplot() +
+      scale_y_log10() +  # <-- Escala logarítmica para manejar asimetrías
+      theme_bw() +
+      ggtitle("Boxplot (Escala log): Percentil 1% y 99%") +
+      ylab("Ingreso por hora (log)") +
+      xlab("") +
+      geom_hline(yintercept = umbral_inferior, linetype = "solid",
+                 color = "blue", linewidth = 0.7) +
+      geom_hline(yintercept = umbral_superior, linetype = "solid",
+                 color = "blue", linewidth = 0.7)
+    
+    combined_plot <- grid.arrange(e, e_log,ncol = 2)
+    
+    ggsave("boxplots_ing.pdf",plot   = combined_plot,device = "pdf",width  = 10,height = 8)
+    
+    
+    #ingreso por sexo 
+    boxplot(y_ingLab_m_ha_wins ~ factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
+            data = datos,
+            xlab = "Género",
+            ylab = "Ingreso laboral por hora(log)",
+            log = "y")
+    
+    
+    #ingreso, edad, sexo 
+    
+    # Definir los cortes: de 18 a 22, 23 a 27, … hasta 93-94 (recordar que la edad máxima es 94)
+    breaks <- c(18, seq(23, 93, by = 5), 95)
+    labels_age <- paste(breaks[-length(breaks)], breaks[-1] - 1, sep = "-")
+    
+    # Crear la variable categórica para edad
+    datos$age_cat <- cut(datos$age,
+                         breaks = breaks,
+                         right = FALSE,
+                         labels = labels_age)
+    
+    # Gráfico: Boxplot del ingreso laboral por hora (escala log10) por categoría de edad y género
+    ggplot(datos, aes(x = age_cat, y = y_ingLab_m_ha_wins, 
+                      fill = factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")))) +
+      geom_boxplot() +
+      scale_y_continuous(trans = "log10") +
+      labs(x = "Edad (quinquenios)",
+           y = "Ingreso laboral por hora (log10)",
+           fill = "Género") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            panel.grid.minor = element_blank())
+    
+    
+    ##sexo y formalidad
+    
+    # Agrupar y calcular el ingreso laboral promedio por sexo y formalidad
+    tabla_formalidad <- datos %>%
+      group_by(gender, formal) %>%
+      summarise(ingreso_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE)) %>%
+      ungroup() %>%
+      mutate(
+        gender_label = factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
+        formal_label = factor(formal, levels = c(1, 0), labels = c("Formal", "Informal"))
+      )
+    
+    # Gráfico de barras agrupado
+    ggplot(tabla_formalidad, aes(x = formal_label, y = ingreso_mean, fill = gender_label)) +
+      geom_bar(stat = "identity", position = position_dodge()) +
+      labs(x = "Formalidad",
+           y = "Ingreso laboral promedio",
+           title = "Ingreso laboral promedio según Sexo y Formalidad",
+           fill = "Género") +
+      theme_minimal()
+    
+    
+    ### tablas cruzadas variable categorica vs variable continua
+    
+    # Tabla por gender
+    tabla_gender <- datos_sub %>%
+      group_by(gender) %>%
+      summarise(
+        edad_mean = mean(age, na.rm = TRUE),
+        edad_median = median(age, na.rm = TRUE),
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_gender)
+    print(xtable(tabla_gender), file = "tabla_gender.tex", type = "latex")
+    
+    # Tabla por jefatura femenina
+    tabla_jef_fem <- datos_sub %>%
+      group_by(Head_Female) %>%
+      summarise(
+        edad_mean = mean(age, na.rm = TRUE),
+        edad_median = median(age, na.rm = TRUE),
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_jef_fem)
+    print(xtable(tabla_jef_fem), file = "tabla_jef_fem.tex", type = "latex")
+    
+    # Tabla por jefatura de hogar
+    tabla_jef_hogar <- datos_sub %>%
+      group_by(H_Head) %>%
+      summarise(
+        edad_mean = mean(age, na.rm = TRUE),
+        edad_median = median(age, na.rm = TRUE),
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_jef_hogar)
+    print(xtable(tabla_jef_hogar), file = "tabla_jef_hogar.tex", type = "latex")
+    
+    # Tabla por nivel educativo
+    tabla_nivel_educativo <- datos_sub %>%
+      group_by(maxEducLevel_im) %>%
+      summarise(
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_nivel_educativo)
+    print(xtable(tabla_nivel_educativo), file = "tabla_nivel_educativo.tex", type = "latex")
+    
+    # Tabla por estrato1
+    tabla_estrato <- datos_sub %>%
+      group_by(estrato1) %>%
+      summarise(
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_estrato)
+    print(xtable(tabla_estrato), file = "tabla_estrato.tex", type = "latex")
+    
+    # Tabla por formalidad laboral
+    tabla_formal <- datos_sub %>%
+      group_by(formal) %>%
+      summarise(
+        edad_mean = mean(age, na.rm = TRUE),
+        edad_median = median(age, na.rm = TRUE),
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      )
+    print(tabla_formal)
+    print(xtable(tabla_formal), file = "tabla_formal.tex", type = "latex")
+    
+    
+    #tabla ingreso, edad, sexo 
+    
+    # Definir cortes y etiquetas para los grupos de edad a partir de 18 años
+    breaks <- c(18, seq(23, 95, by = 5), 95)
+    labels_age <- paste(breaks[-length(breaks)], breaks[-1] - 1, sep = "-")
+    
+    # Crear las variables de grupos de edad y de sexo con etiquetas
+    datos <- datos %>%
+      mutate(age_cat = cut(age, 
+                           breaks = breaks, 
+                           right = FALSE, 
+                           labels = labels_age),
+             gender_label = factor(gender, levels = c(1, 0), 
+                                   labels = c("Hombre", "Mujer")))
+    
+    # Generar la tabla de ingreso laboral (promedio y mediana) según grupo de edad por sexo
+    tabla_ingreso <- datos %>%
+      group_by(age_cat, gender_label) %>%
+      summarise(
+        ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+        ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+      ) %>%
+      ungroup()
+    
+    # Imprimir la tabla en la consola
+    print(tabla_ingreso)
+    
+    # Exportar la tabla a un archivo LaTeX para Overleaf
+    print(xtable(tabla_ingreso), file = "tabla_ingreso.tex", type = "latex")
+    
+    
+    
+    ###Resumen descriptivo de variables categóricas 
+    
+    var_order <- c("gender", "H_Head", "Head_Female", "maxEducLevel_im", 
+                   "estrato1", "cotPension_im", "regSalud_im", 
+                   "formal", "relab", "sizeFirm")
+    
+    # 1) resumen con Frecuencia y %
+    
+    categorical_summary <- datos_sub %>%
+      # Selecciona las columnas definidas en categorical_vars
+      select_at(categorical_vars) %>% 
+      pivot_longer(cols = everything(), 
+                   names_to = "Variable", 
+                   values_to = "Categoria") %>%
+      group_by(Variable, Categoria) %>%
+      summarise(Frecuencia = n(), .groups = "drop") %>%
+      group_by(Variable) %>%
+      mutate(
+        Porcentaje = paste0(
+          round(100 * Frecuencia / sum(Frecuencia), 1), "%"
+        )
+      ) %>%
+      ungroup() %>%
+      # Convertir Variable a factor con el orden especificado
+      mutate(Variable = factor(Variable, levels = var_order)) %>%
+      # Ordenar primero por Variable (en el orden de var_order) 
+      # y luego descendentemente por Frecuencia
+      arrange(Variable, desc(Frecuencia))
+    
+    #Visualizar la tabla en la consola
+    
+    # a) Como data frame
+    categorical_summary
+    
+    # b) Como tabla Markdown (en la consola)
+    categorical_summary %>% 
+      kable(format = "pandoc")
+    
+    # Generar la salida en formato LaTeX
+    
+    categorical_summary %>%
+      kable(format = "latex", booktabs = TRUE,
+            caption = "Resumen de Variables Categóricas (con Etiquetas y %)") %>%
+      kable_styling(latex_options = c("striped", "hold_position"))
+    
+    
+    ##Cruces de variables 
+    
+    ##Tablas de contingencia entre variables de la firma 
+    
+    ###sizefirm vs. formal 
+    CrossTable(
+      datos_sub$sizeFirm,
+      datos_sub$formal, 
+      prop.r    = TRUE,   # proporción por fila
+      prop.c    = FALSE,  # no proporción por columna
+      prop.t    = FALSE,   # proporción sobre total
+      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+    )
+    
+    # Realizar la prueba chi-cuadrado y capturar los resultados
+    chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$sizeFirm))
+    
+    # Imprimir los resultados en la consola
+    cat("\nChi-Square Test Results:\n")
+    cat(paste("Chi-squared:", chi_test$statistic, "\n"))
+    cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
+    cat(paste("P-value:", chi_test$p.value, "\n"))
+    
+    tabla1 <- as.data.frame(tabla$t)
+    # Guardar tabla de contingencia en LaTeX
+    stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia1.tex",
+              title = "Tabla de Contingencia entre Tamaño de Firma y Formalidad",
+              label = "tab:contingencia")
+    
+    ### relab vs. formal           
+    
+    CrossTable(
+      datos_sub$relab,
+      datos_sub$formal, 
+      prop.r    = TRUE,   # proporción por fila
+      prop.c    = FALSE,  # no proporción por columna
+      prop.t    = FALSE,   # proporción sobre total
+      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+    )
+    
+    # Realizar la prueba chi-cuadrado y capturar los resultados
+    chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$relab))
+    
+    # Imprimir los resultados en la consola
+    cat("\nChi-Square Test Results:\n")
+    cat(paste("Chi-squared:", chi_test$statistic, "\n"))
+    cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
+    cat(paste("P-value:", chi_test$p.value, "\n"))
+    
+    tabla2 <- as.data.frame(tabla$t)
+    # Guardar tabla de contingencia en LaTeX
+    stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia2.tex",
+              title = "Tabla de Contingencia entre Tipo de ocupacion y Formalidad",
+              label = "tab:contingencia")
+    
+    ### formal vs. cotPension_im          
+    
+    CrossTable(
+      datos_sub$cotPension_im,
+      datos_sub$formal, 
+      prop.r    = TRUE,   # proporción por fila
+      prop.c    = FALSE,  # no proporción por columna
+      prop.t    = FALSE,   # proporción sobre total
+      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+    )
+    
+    # Realizar la prueba chi-cuadrado y capturar los resultados
+    chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$cotPension_im))
+    
+    # Imprimir los resultados en la consola
+    cat("\nChi-Square Test Results:\n")
+    cat(paste("Chi-squared:", chi_test$statistic, "\n"))
+    cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
+    cat(paste("P-value:", chi_test$p.value, "\n"))
+    
+    tabla3 <- as.data.frame(tabla$t)
+    # Guardar tabla de contingencia en LaTeX
+    stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia3.tex",
+              title = "Tabla de Contingencia entre Cotiza pension y Formalidad",
+              label = "tab:contingencia")    
+    
+    
+    ##  formal vs. regSalud_im
+    CrossTable(
+      datos_sub$regSalud_im,
+      datos_sub$formal, 
+      prop.r    = TRUE,   # proporción por fila
+      prop.c    = FALSE,  # no proporción por columna
+      prop.t    = FALSE,   # proporción sobre total
+      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+    )
+    
+    # Realizar la prueba chi-cuadrado y capturar los resultados
+    chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$regSalud_im))
+    
+    # Imprimir los resultados en la consola
+    cat("\nChi-Square Test Results:\n")
+    cat(paste("Chi-squared:", chi_test$statistic, "\n"))
+    cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
+    cat(paste("P-value:", chi_test$p.value, "\n"))
+    
+    tabla4 <- as.data.frame(tabla$t)
+    # Guardar tabla de contingencia en LaTeX
+    stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia4.tex",
+              title = "Tabla de Contingencia entre Regimen de salud y Formalidad",
+              label = "tab:contingencia")    
+    
+    
+    ##Analisis de caracteristicas socioeconomicas y demograficas 
+    
+    #edad vs sexo 
+    
+    boxplot(edad~sexo,
+            datos,
+            xlab="Sexo",
+            ylab="Edad (anos)", 
+            xaxt="n")
+    axis(1, at=1:2,
+         labels=c("Hombre","Mujer"))
+    
 ##################################
 #esto ya se hizo en la linea 151-152
 # Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
