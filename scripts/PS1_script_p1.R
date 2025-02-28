@@ -540,7 +540,7 @@ datos <- datos %>%
     
     extremos_inferior$y_ingLab_m_ha_im
     
-    ## 6. winsorizing 
+     ## 6. winsorizing 
     
     # Calcular el valor del percentil 5
     p5 <- quantile(datos$y_ingLab_m_ha_im, 0.05, na.rm = TRUE)
@@ -1179,10 +1179,10 @@ modelo_p3_2s <- lm(reg_p3_2s, data = datos2)
 
 #Generacion de la tabla 
 stargazer(modelo_p3_s1, type = "text", title = "Logaritmo del salario en funcion de la edad")
-##stargazer(reg_p3_1s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+stargazer(modelo_p3_s1, type = "latex", title = "Logaritmo del salario en funcion de la edad")
 
 stargazer(modelo_p3_2s, type = "text", title = "Logaritmo del salario en funcion de la edad")
-##stargazer(reg_p3_2s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
+stargazer(modelo_p3_2s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
 
 
 # Sacando los coeficientes
@@ -1196,8 +1196,8 @@ modelo_p3_2s$coefficients
 log_s_hat_1 <- predict(modelo_p3_1s, newdata = datos1)
 log_s_hat_2  <- predict(modelo_p3_2s, newdata = datos2)
 
-MSE_1s <- mean((log_s1 - log_s_hat_1)^2)
-MSE_2s <- mean((log_s2 - log_s_hat_2)^2)
+MSE_1s <- mean((datos1$log_s1 - log_s_hat_1)^2)
+MSE_2s <- mean((datos2$log_s2 - log_s_hat_2)^2)
 
 MSE_1s
 MSE_2s
