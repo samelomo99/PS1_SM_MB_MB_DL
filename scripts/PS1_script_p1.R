@@ -30,7 +30,8 @@ pacman::p_load(
   boot,         # Funciones de bootstrap
   patchwork,    # Combinación de gráficos
   caret,         # For predictive model assessment
-  purrr
+  purrr,
+  kableExtra
  )
 
 
@@ -39,7 +40,7 @@ pacman::p_load(
 # ------------------------------------------------------------- #
 
 # --------------------------------------------------------------- #
-#   ----- MANEJO DE DATOS Y ELECCIóN DE VARIABLES DE INTERÉS -----#
+#   ----- MANEJO DE DATOS Y ELECCIÓN DE VARIABLES DE INTERÉS -----#
 # --------------------------------------------------------------- #
 
 # Usamos la base de datos scrapeada y subida al repositorio en GitHub
@@ -101,20 +102,20 @@ datos <- datos %>%
     regSalud
   )
 
-
-
 # Visualizar la estructura de la nueva base de datos
 str(datos)
 
-#2. Creamos algunas variables de interes antes filtrar por los mayores de 18    
 
-#2.1. NUMERO DE MENORES EN EL HOGAR
-##Crear variable indicador de menores de 18 años
+# 2.2 Creamos algunas variables de interés antes filtrar por los mayores de 18    
+
+# 2.2.1. NÚMERO DE MENORES EN EL HOGAR
+
+# Crear variable indicador de menores de 18 años
 library(dplyr)
 datos <- datos %>%
   mutate(flag = ifelse(age <= 6, 1, 0))
 
-#Calcular el número total de menores por hogar (identificado por 'directorio' y 'secuencia_p')
+# Calcular el número total de menores por hogar (identificado por 'directorio' y 'secuencia_p')
 datos <- datos %>%
   group_by(directorio, secuencia_p) %>%
   mutate(nmenores = sum(flag)) %>%
@@ -128,18 +129,18 @@ datos %>%
   View()
 
 
-#2.2 JEFE DE HOGAR (1= jefe 0=otro caso)
+# 2.2.2. JEFE DEL HOGAR
 datos <- datos %>%
   mutate(H_Head = ifelse( p6050== 1, 1, 0))
 
 table(datos$H_Head)
 
-#2.3 JEFE DE HOGAR MUJER
+# 2.2.3. JEFE DE HOGAR MUJER
 
-#renombrando variable sex=gender (nota: gender= 0=mujer 1=hombre)
+# Renombramos la variable sex=gender (Nota. gender: 0=mujer 1=hombre)
 datos <- as_tibble(datos) %>% rename(gender=sex)
 
-# creando variable jefe hogar mujer 
+# Creamos la variable de jefe de hogar mujer 
 datos <- datos %>%
   mutate(Head_Female = H_Head*(1-gender))
 
@@ -152,67 +153,54 @@ datos <- datos %>% filter(age >= 18, ocu == 1)
 summary(datos$age) # Comprobamos que el mínimo es 18 años.
 
 
-##########################
-#INSPECCIÓN DE LOS DATOS
-##########################
+# ------------------------------------ #
+# ------ INSPECCIÓN DE LOS DATOS ----- #
+# ------------------------------------ #
 
-datos <- as_tibble(datos) ## de dataframe to tibble
-
-## print data
+# Pasamos el data.frame a tibble
+datos <- as_tibble(datos)
 head(datos)
-tail(datos)
 
-## Inspección básica de la estructura y resumen de datos
+# Inspección básica de la estructura y resumen de datos
 library(skimr)
 skim_data <- skim(datos)
-print(skim_data, n = Inf) # Imprimir todas las filas en la consola
 View(skim_data) # abrirlo en el visor de datos 
 
-###Se revisa la estructura del dataframe (con glimpse y resumen estadístico básico (summary).
+# Se revisa la estructura del dataframe (con glimpse y resumen estadístico básico (summary).
 glimpse(datos)
 summary(datos)
 
-##Otra opcion de exploracion es usar el paquete summarytool que genera muy completo que incluye las frecuencias y el porcentaje de NA para cada variable
-install.packages("summarytools")  # Si no lo tienes instalado
+# Summary Tools
+install.packages("summarytools")
 library(summarytools)
-resumen <- dfSummary(datos, style = "grid", plain.ascii = FALSE) # resumen completo de la base
-print(resumen, method = "browser") # Imprime el resumen en el navegador
+
+# Resumen de los datos
+resumen <- dfSummary(datos, style = "grid", plain.ascii = FALSE)
+print(resumen, method = "browser") 
 
 
-##Visualización de datos faltantes, utilizando diferentes metricas aprendidas 
-#en clase
-
+# Tratamiento NA / Missing Values
 skim_data <- as_tibble(skim(datos))  # Forzar a tibble
 db_miss <- skim_data %>% dplyr::select(skim_variable, n_missing)
 
-
+# Visualización
 # a) ggplot
 library(ggplot2)
-ggplot(db_miss, aes(x = reorder(skim_variable, +n_missing), y = n_missing)) +
+db_miss %>%
+  filter(n_missing > 0) %>%  # Filtra solo variables con valores perdidos
+  ggplot(aes(x = reorder(skim_variable, +n_missing), y = n_missing)) +
   geom_bar(stat = "identity", fill = "skyblue", color = "black") +
   coord_flip() +
   labs(title = "N Missing Per Variable", x = "Var Name", y = "Missings") + 
   theme(axis.text = element_text(size = 5))
 
-# b) Con naniar: gráfico de missing values
-vis_miss(datos)
-
-# c) Con DataExplorer: gráfico de missing values
-plot_missing(datos)
-
-# d) grafico de correlaciones: creamos a dataset con todas ls variables== 1 if missing
-db2 <- datos %>% mutate_all(~ifelse(!is.na(.), 1, 0))
-## descartar variables con ningun missing o con todas missing.
-db2 <- datos %>% mutate_all(~ifelse(!is.na(.), 1, 0)) %>%
-  select_if(~sd(.) > 0)
-## Usar el paquete corrplot para visualizar una matriz de correlación 
-#de cómo se correlacionan los valores faltantes entre diferentes variables.
-M <- cor(db2)
-corrplot(M) 
+# b) Con DataExplorer: gráfico de missing values
+datos_filtrados <- datos %>% select_if(~ sum(is.na(.)) > 0) # Filtra solo variables con NA
+plot_missing(datos_filtrados)
 
 
 ###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
-#          variables de ingresos y en la de maxeduclevel. Procedemos a dar manejo a
+#          variables de ingresos, en la de maxeduclevel y en RegSalud. Procedemos a dar manejo a
 #          los datos faltantes. 
 
 ###A continuación se proceder a dar manejo a datos missing,por el momento hacemos 
@@ -224,11 +212,11 @@ corrplot(M)
 #   haremos algunas exploraciones de outliers y su respectivo manejo 
 
 
-##########################
-#PREPARACIÓN DE LOS DATOS
-##########################
+# ------------------------------------ #
+# ----- PREPARACIÓN DE LOS DATOS ----- #
+# ------------------------------------ #
 
-### 1) maxEducLevel         
+## 1. maxEducLevel         
 
 ggplot(datos, aes(maxEducLevel)) +
   geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -236,16 +224,15 @@ ggplot(datos, aes(maxEducLevel)) +
   theme_classic() +
   theme(plot.title = element_text(size = 18))   
 
-# como es una variable categórica se reemplaza con el valor mas común (moda)
+# Como es una variable categórica se reemplaza con el valor mas común (moda)
 
-# se calcula el valor mas comun maxEducLevel. 
 mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[1]))
 
-# Imputing the missing value. 
+# Corregimos el Missing Value 
 datos <- datos  %>%
   mutate(maxEducLevel_im = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
 
-###  2) regSalud
+## 2. regSalud
 
 # Corrigiendo missing en regSalud
 #regSalud 1 r. contributivo
@@ -295,7 +282,7 @@ datos <- datos %>%
 
 table(datos$regSalud)
 
-### 3)CotPension
+# 3. CotPension
 
 ##revisamos la variable cotPension
 table(datos$cotPension)
@@ -349,7 +336,7 @@ datos <- datos %>%
 table(datos$cotPension)
 
 
-### 4) relab 
+# 4. relab 
 # la variable relab me indica el tipo de relacion laboral,
 # se considera eliminar registros cuya categoria es 6 y 7, y no tiene
 # informacion de ingreso ya que por definición no generan 
@@ -1126,14 +1113,6 @@ datos <- datos %>%
     axis(1, at=1:2,
          labels=c("Hombre","Mujer"))
     
-##################################
-#esto ya se hizo en la linea 151-152
-# Filtramos por mayores (o iguales) a 18 y por personas ocupadas. 
-#datos <- datos %>% filter(age >= 18, ocu == 1)
-#summary(datos$age) # Comprobamos que el mínimo es 18 años.
-#skim(datos)
-###################
-
 
 ## --- Tratamniento Missing Values --- ##
 
@@ -1157,7 +1136,7 @@ datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
 skim(datos1)
 skim(datos2)
 
-
+## TRABAJAR CON DATOS SUB
 
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 3 ------------------------- ##
