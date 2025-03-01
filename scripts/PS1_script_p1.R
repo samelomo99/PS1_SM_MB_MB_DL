@@ -168,6 +168,10 @@ db_miss %>%
 # b) Con DataExplorer: gráfico de missing values
 datos_filtrados <- datos %>% select_if(~ sum(is.na(.)) > 0) # Filtra solo variables con NA
 plot_missing(datos_filtrados)
+ 
+pdf("plot_missing_val.pdf", width = 8, height = 6)  
+plot_missing(datos_filtrados)  
+dev.off()  # Cierra el dispositivo PDF
 
 # ------------------------------------ #
 # ----- PREPARACIÓN DE LOS DATOS ----- #
