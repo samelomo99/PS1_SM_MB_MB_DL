@@ -31,7 +31,9 @@ pacman::p_load(
   patchwork,    # Combinación de gráficos
   caret,         # For predictive model assessment
   purrr,
-  kableExtra
+  kableExtra,
+  summarytools,
+  xtable
  )
 
 
@@ -77,7 +79,7 @@ datos <- datos %>%
 str(datos)
 
 
-# Creamos algunas variables de interés antes filtrar por los mayores de 18    
+# Creamos algunas variables de interés antes filtrar por los mayores o iguales a 18    
 
 # NÚMERO DE MENORES EN EL HOGAR
 
@@ -141,11 +143,7 @@ View(skim_data) # abrirlo en el visor de datos
 glimpse(datos)
 summary(datos)
 
-# Summary Tools
-install.packages("summarytools")
-library(summarytools)
-
-# Resumen de los datos
+# Resumen de los datos - Summary Tools
 resumen <- dfSummary(datos, style = "grid", plain.ascii = FALSE)
 print(resumen, method = "browser") 
 
@@ -273,10 +271,11 @@ datos <- datos %>%
 ###################
 ###y_ingLab_m_ha
 ###################
-    # Numero de missing de la variable 
+    
+# Numero de missing de la variable 
     is.na(datos$y_ingLab_m_ha) %>% table()
     
-    #distribucion de la variable ingreso 
+    #distribución de la variable ingreso 
     
     ggplot(datos, aes(y_ingLab_m_ha)) +
       geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -307,6 +306,20 @@ datos <- datos %>%
       theme(plot.title = element_text(size = 18))
     
     summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
+    
+    # No obstante, creamos otra variable con el uso de media como reemplazo de NA
+    datos <- datos  %>%
+      mutate(y_ingLab_m_ha_mean = ifelse(is.na(y_ingLab_m_ha) == TRUE, mean(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
+    
+    ggplot(datos, aes(y_ingLab_m_ha_mean)) +
+      geom_histogram(color = "#000000", fill = "#0099F8") +
+      geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
+      geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+      ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+      theme_classic() +
+      theme(plot.title = element_text(size = 18))
+    
+    summary(datos[, c("y_ingLab_m_ha_mean", "y_ingLab_m_ha")])
     
     # gráfico de missing values
     plot_missing(datos)
@@ -522,14 +535,14 @@ datos <- datos %>%
     
     # relab: 1=Obrero..., 2=Obrero..., etc.
     datos_sub$relab <- factor(datos_sub$relab,
-                              levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
+                              levels = c(1, 2, 3, 4, 5, 6, 7, 8),
                               labels = c("Obrero/emp. empresa particular",
                                          "Obrero/emp. gobierno",
                                          "Empleado doméstico",
                                          "Trabajador cuenta propia",
                                          "Patrón o empleador",
                                          "Trabajador familiar sin remuneración",
-                                         "Trabajador sin remuneracionempresas/negocios de otros hogares"
+                                         "Trabajador sin remuneracionempresas/negocios de otros hogares",
                                          "Otro"))
     
     # formal: 1=formal (seguridad social), 0=otro
@@ -997,83 +1010,33 @@ datos <- datos %>%
     axis(1, at=1:2,
          labels=c("Hombre","Mujer"))
     
-
-    
-    
-## --- Tratamniento Missing Values --- ##
-
-# -- NA / Missing Values - 2 aproximaciones -- #
-is.na(datos$y_ingLab_m_ha)
-
-# 1. Eliminamos NA
-datos1 <- datos %>% filter(!is.na(y_ingLab_m_ha))
-
-
-# 2. Reemplazamos NA por el valor medio
-
-m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
-datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
-
-# Eliminamos NA de maxEducLevel
-datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
-
-
-# Revisión rápida de los datos
-skim(datos1)
-skim(datos2)
-
-## TRABAJAR CON DATOS SUB
-
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 3 ------------------------- ##
 # ------------------------------------------------------------- #
 
 ## Creamos las variables
-
-datos1 <- datos1 %>% mutate(log_s1 = log(y_ingLab_m_ha))
-datos2 <- datos2 %>% mutate(log_s2 = log(y_ingLab_m_ha))
-
+datos1 <- datos%>% mutate(log_s2 = log(y_ingLab_m_ha_mean))
+datos2 <- datos%>% mutate(log_s2 = log(y_ingLab_m_ha_wins))
 
 ## La regresión 
-
-reg_p3_1s <- log_s1 ~ age + I(age^2)
-modelo_p3_1s <- lm(reg_p3_1s, data = datos1)
-
-reg_p3_2s <- log_s2 ~ age + I(age^2)
-modelo_p3_2s <- lm(reg_p3_2s, data = datos2)
+reg_p3 <- log_s2 ~ age + I(age^2)
+modelo_p3_mean <- lm(reg_p3, data = datos1)
+modelo_p3_median <- lm(reg_p3, data = datos2)
 
 #Generacion de la tabla 
-stargazer(modelo_p3_s1, type = "text", title = "Logaritmo del salario en funcion de la edad")
-stargazer(modelo_p3_s1, type = "latex", title = "Logaritmo del salario en funcion de la edad")
-
-stargazer(modelo_p3_2s, type = "text", title = "Logaritmo del salario en funcion de la edad")
-stargazer(modelo_p3_2s, type = "latex", title = "Logaritmo del salario en funcion de la edad")
-
+stargazer(modelo_p3_mean, modelo_p3_median, type = "text", title = "Logaritmo del salario en funcion de la edad")
 
 # Sacando los coeficientes
-
-modelo_p3_1s$coefficients
-modelo_p3_2s$coefficients
-
+modelo_p3_mean$coefficients
+modelo_p3_median$coefficients
 
 ## Revisando el ajuste intramodelo
+log_s_hat_mean  <- predict(modelo_p3_mean, newdata = datos1)
+log_s_hat_median <- predict(modelo_p3_median, newdata = datos2)
+print(c(MSE_p3_mean = mean((datos1$log_s2 - log_s_hat_mean)^2), MSE_p3_median = mean((datos2$log_s2 - log_s_hat_median)^2)))
+# Nos quedamos con la mediana
 
-log_s_hat_1 <- predict(modelo_p3_1s, newdata = datos1)
-log_s_hat_2  <- predict(modelo_p3_2s, newdata = datos2)
-
-MSE_1s <- mean((datos1$log_s1 - log_s_hat_1)^2)
-MSE_2s <- mean((datos2$log_s2 - log_s_hat_2)^2)
-
-MSE_1s
-MSE_2s
-
-## En este caso el MSE2s se ajusta mejor y nos va mejor en el modelo de medias. 
-## Nos casamos con el modelo de medias (datos2)
-
-
-## Ahora desarrollamos una grafica para ver cual es el valor del punto pico del ingreso estimado en terminos de la edad.
-
-
+## Gráfica - Punto más alto de ingreso estimado según edad
 ggplot(datos2, aes(x = age, y = log_s_hat_2)) +
   geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
   geom_vline(xintercept = 50, color = "red", linetype = "dashed", size = 1) +  # Línea vertical roja en x = 50
@@ -1083,17 +1046,15 @@ ggplot(datos2, aes(x = age, y = log_s_hat_2)) +
        y = "Log(Ingresos)") +
   theme_minimal()
 
-## Finalmente calculamos con bootstrap el valor maximo de los ingresos.
-
-##Primero creamos la funcion 
-
+## Calculamos con bootstrap el valor máximo de los ingresos.
+# Primero creamos la función 
 peak_age_f2<-function(datos2,index){
   
-  reg_p3_2s <- lm(log_s2 ~ age + I(age^2), data = datos2, subset = index)
+  modelo_p3 <- lm(log_s2 ~ age + I(age^2), data = datos2, subset = index)
   
   
-  b2s <- coef(reg_p3_2s)[2]
-  b3s <- coef(reg_p3_2s)[3]
+  b2s <- coef(modelo_p3)[2]
+  b3s <- coef(modelo_p3)[3]
   
   age_max_s <- -b2s/(2*b3s)  #Esto sale de derivar la ecuacion e igualar a 0 en base a los coeficientes estimados
   
@@ -1103,7 +1064,7 @@ peak_age_f2<-function(datos2,index){
 peak_age_f2(datos2,1:nrow(datos2))  #Probando la funcion 
 
 ##Finalmente hacemos la simulación
-set.seed(1234)
+set.seed(10101)
 boot_p3_s <- boot(data = datos2, peak_age_f2, R = 1000)
 boot_p3_s
 
@@ -1187,7 +1148,7 @@ fwl_function<-function(datos2,index){
 fwl_function(datos2,1:nrow(datos2))  #Probando la funcion 
 
 ##Finalmente hacemos la simulación
-set.seed(1234)
+set.seed(10101)
 boot_p4_ha <- boot(data = datos2, fwl_function, R = 1000)
 boot_p4_ha
 
@@ -1216,7 +1177,7 @@ peak_age_female <-function(datos2,index){
 peak_age_female(datos2,1:nrow(datos2))  #Probando la funcion 
 
 ##Finalmente hacemos la simulación
-set.seed(1234)
+set.seed(10101)
 boot_p4_f <- boot(data = datos2, peak_age_female, R = 1000)
 boot_p4_f
 
@@ -1260,7 +1221,7 @@ peak_age_male <-function(datos2,index){
 peak_age_male(datos2,1:nrow(datos2))  #Probando la funcion 
 
 ##Finalmente hacemos la simulación
-set.seed(1234)
+set.seed(10101)
 boot_p4_m <- boot(data = datos2, peak_age_male, R = 1000)
 boot_p4_m
 
@@ -1373,16 +1334,16 @@ ggplot(split_data, aes(x = Split, y = Count)) +
 
 # Performance modelos anteriores y modelos adicionales
 # MODELOS ANTERIORES
-modelo1 <- lm(reg_p3_2s, data = train)
+modelo1 <- lm(reg_p3, data = train)
 modelo2 <- lm(reg_p4, data = train)
-modelo3 <- lm(reg_p4_fwl, data = train)
+modelo3 <- lm(reg_p4_controles, data = train)
 
 # MODELOS ADICIONALES
 modelo4 <- lm(log_s2 ~ age + I(age^2) + female, data = train)
 modelo5 <- lm(log_s2 ~ age + I(age^2) + female + (age * female), data = train) # interacción female x age
-modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + oficio + estrato1, data = train) # controles principales
-modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + nmenores + sizeFirm, data = train) # controles secundarios
-modelo8 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + I(maxEducLevel^2) + (maxEducLevel * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm, data = train) # interacción y forma polinomial 
+modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + oficio + estrato1, data = train) # controles principales
+modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + sizeFirm, data = train) # controles secundarios
+modelo8 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + I(maxEducLevel_im^2) + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm, data = train) # interacción y forma polinomial 
 
 # Performance (fuera de muestra)
 predictions <- list(
@@ -1434,13 +1395,10 @@ ggplot(test, aes(y = prediction_error)) +
 ## ------------------- ##
 ## ---- Punto 5.3 ---- ## 
 ## ------------------- ##
-form_8 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + I(maxEducLevel^2) + (maxEducLevel * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm
-form_7 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel + (maxEducLevel * age) + oficio + estrato1 + nmenores + sizeFirm
-
-
+form_8 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + I(maxEducLevel_im^2) + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm
+form_7 <- log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + sizeFirm
 
 # Entrenamos los modelos - Metodología LOOCV
-
 ctrl <- trainControl(
   method = "LOOCV") ## input the method Leave One Out Cross Validation
 
@@ -1469,4 +1427,3 @@ perf1_LOOCV
 
 perf2_LOOCV <- RMSE(modelo2_LOOCV$pred$pred, datos2$log_s2)
 perf2_LOOCV
-
