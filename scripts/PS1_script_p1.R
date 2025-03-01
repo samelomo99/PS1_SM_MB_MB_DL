@@ -52,30 +52,6 @@ datos <- read_csv(
   )
 
 ## filtramos solo las variables de interes y construimos variables necesarias
-      ### El problema establece que el modelo debe predecir el salario por hora de 
-        # los individuos, por tanto, incluiremos en la sub-base variables de salario por hora
-        # en diferentes especificaciones para analisis exploratorio.
-        # La elección de las potenciales variables predictores en un modelo de predicción de 
-        # salarios por hora se fundamenta en la teoría del capital humano 
-        # (Mincer, 1974) y en estudios previos que han analizado los determinantes 
-        # del ingreso laboral.
-            
-            # 1. Variables clave del capital humano: El modelo minceriano sugiere que 
-            #    la educación y la experiencia son los principales determinantes del salario.
-            # 2. Características sociodemográficas: Las diferencias salariales pueden 
-            #    explicarse parcialmente por atributos personales y sociales
-            # 3. Variables relacionadas con el empleo y la firma: Las características 
-            #    de la empresa y del empleo afectan significativamente la estructura 
-            #    salarial.
-
-
-# 1. Seleccionar las variables de interés, incluyendo las variables llave:
-#    - directorio: Llave de vivienda
-#    - orden: Llave de persona
-#    - secuencia_p: Llave de hogar
-
-# Nota: la variable   clase (1 urabano 0 rural), no se incluye porque todo es urbano
-#la variable dominio y departamento, no se incluye porque todo es Bogota
 
 datos <- datos %>%
   dplyr::select(
@@ -83,7 +59,6 @@ datos <- datos %>%
     orden,         # Llave de persona
     secuencia_p,   # Llave de hogar
     y_ingLab_m_ha,
-    y_salary_m_hu,
     sex,
     age,
     maxEducLevel,
@@ -93,22 +68,18 @@ datos <- datos %>%
     relab,
     formal,
     informal,
-    microEmpresa,
-    cuentaPropia,
     sizeFirm,
     cotPension,
     ocu,
-    pea,
-    regSalud
   )
 
 # Visualizar la estructura de la nueva base de datos
 str(datos)
 
 
-# 2.2 Creamos algunas variables de interés antes filtrar por los mayores de 18    
+# Creamos algunas variables de interés antes filtrar por los mayores de 18    
 
-# 2.2.1. NÚMERO DE MENORES EN EL HOGAR
+# NÚMERO DE MENORES EN EL HOGAR
 
 # Crear variable indicador de menores de 18 años
 library(dplyr)
@@ -129,13 +100,13 @@ datos %>%
   View()
 
 
-# 2.2.2. JEFE DEL HOGAR
+# JEFE DEL HOGAR
 datos <- datos %>%
   mutate(H_Head = ifelse( p6050== 1, 1, 0))
 
 table(datos$H_Head)
 
-# 2.2.3. JEFE DE HOGAR MUJER
+# JEFE DE HOGAR MUJER
 
 # Renombramos la variable sex=gender (Nota. gender: 0=mujer 1=hombre)
 datos <- as_tibble(datos) %>% rename(gender=sex)
@@ -198,25 +169,13 @@ db_miss %>%
 datos_filtrados <- datos %>% select_if(~ sum(is.na(.)) > 0) # Filtra solo variables con NA
 plot_missing(datos_filtrados)
 
-
-###Nota:para el grupo de variables seleccionado, se encuentra que hay missing en la
-#          variables de ingresos, en la de maxeduclevel y en RegSalud. Procedemos a dar manejo a
-#          los datos faltantes. 
-
-###A continuación se proceder a dar manejo a datos missing,por el momento hacemos 
-#   procesamiento de datos a las diferentes formas de la variable de salario/ingreso
-#   para definir la mejor opcion 
-
-### la tabla de resumen tambien indica que hay valores extremos en las variables relacionadas
-#   con el ingreso, antes de proceder a seleccion nuestra variable de resultado,
-#   haremos algunas exploraciones de outliers y su respectivo manejo 
-
-
 # ------------------------------------ #
 # ----- PREPARACIÓN DE LOS DATOS ----- #
 # ------------------------------------ #
 
-## 1. maxEducLevel         
+###################
+## maxEducLevel         
+###################
 
 ggplot(datos, aes(maxEducLevel)) +
   geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -232,59 +191,10 @@ mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[
 datos <- datos  %>%
   mutate(maxEducLevel_im = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
 
-## 2. regSalud
+###################
+##cotPension
+###################
 
-# Corrigiendo missing en regSalud
-#regSalud 1 r. contributivo
-#regSalud 2 r. especial
-#regSalud 3 r. subsidiado
-#regSalud 9 N/A
-
-# numero de missing 
-datos %>% 
-  summarise(total_na = sum(is.na(regSalud)))
-
-#tabla cruzada para verificar que caracteristiscas tienen aquellos con missing en RegSalud
-datos <- datos %>%
-  mutate(regSalud_status = ifelse(is.na(regSalud), "Missing", "Not Missing"))
-
-# a) Para la variable formal (=1 if formal (social security); =0 otherwise)
-table_formal <- table(datos$regSalud_status, datos$formal)
-print("Tabla cruzada: regSalud_status vs. formal")
-print(table_formal) #aquellos con missing en Reg Salud es porque no son formales
-
-# b) Para la variable relab 
-#relab 1 "Obrero o empleado de empresa particular";
-#relab 2 "Obrero o empleado del gobierno";
-#relab 3 "Empleado doméstico";
-#relab 4 "Trabajador por cuenta propia";
-#relab 5 "Patron o empleador";
-#relab 6 "Trabajador familiar sin remuneracion";
-#relab 7 "Trabajador sin remuneracin en empresas o negocios de otros hogares";
-#relab 8 "Jornalero o peon";
-#relab 9 "Otro";
-
-table_relab <- table(datos$regSalud_status, datos$relab)
-print("Tabla cruzada: regSalud_status vs. relab")
-print(table_relab)
-
-table_sizefirm <- table(datos$regSalud_status, datos$sizeFirm)
-print("Tabla cruzada: regSalud_status vs. sizefirm")
-print(table_sizefirm)
-
-#se observa que los valores missingen RegSalud, estan mas asociados a una 
-# condicion de informalidad o personas que son cuenta propia, por tanto
-# esto corresponde mas un no aplica, que aun missing real, no seria 
-# adecuado reemplazar con la moda, en el directorio de variables, estos
-# corresponderian a la categoria No Aplica=9 
-datos <- datos %>%
-  mutate(regSalud_im = ifelse(is.na(regSalud), 9, regSalud))
-
-table(datos$regSalud)
-
-# 3. CotPension
-
-##revisamos la variable cotPension
 table(datos$cotPension)
 
 #observamos que 380 aparecen como pensionados, en teoria ya no tendrian salario
@@ -335,12 +245,13 @@ datos <- datos %>%
   mutate(cotPension_im = ifelse(pension_status == 1, 1, cotPension))
 table(datos$cotPension)
 
-
-# 4. relab 
-# la variable relab me indica el tipo de relacion laboral,
-# se considera eliminar registros cuya categoria es 6 y 7, y no tiene
-# informacion de ingreso ya que por definición no generan 
-#remuneración que se pueda modelar.
+###################
+# relab 
+###################
+  # la variable relab me indica el tipo de relacion laboral,
+  # se considera eliminar registros cuya categoria es 6 y 7, y no tiene
+  # informacion de ingreso ya que por definición no generan 
+  #remuneración que se pueda modelar.
 
 table(datos$relab)
 
@@ -355,8 +266,9 @@ print(tabla_resumen)
 datos <- datos %>% 
   filter(!(relab %in% c(6, 7) & is.na(y_ingLab_m_ha)))          
 
-### 5) y_ingLab_m_ha
-
+###################
+###y_ingLab_m_ha
+###################
     # Numero de missing de la variable 
     is.na(datos$y_ingLab_m_ha) %>% table()
     
@@ -395,18 +307,20 @@ datos <- datos %>%
     # gráfico de missing values
     plot_missing(datos)
     
-    ###manejo de outliers variable ingreso por hora
+    #########################################################
+    ###manejo de outliers 
+    #########################################################
     
     # Librerías necesarias
     library(dplyr)
     library(ggplot2)
     library(gridExtra)
     
-    # 1. Exploración inicial de la variable de ingreso
+    # Exploración inicial de la variable de ingreso
     summary(datos$y_ingLab_m_ha_im)
     boxplot(datos$y_ingLab_m_ha_im, main = "Boxplot de y_ingLab_m_ha_im (imputada)")
     
-    # 2. Definimos los umbrales para marcar outliers (1% y 99%)
+    # Definimos los umbrales para marcar outliers (1% y 99%)
     p_inferior <- 0.01
     p_superior <- 0.99
     
@@ -421,7 +335,7 @@ datos <- datos %>%
     cat("Número de registros outliers (1% - 99%):", n_extremos, "\n")
     summary(extremos$y_ingLab_m_ha_im)
     
-    # 2.1. Revisión específica del límite inferior
+    # Revisión específica del límite inferior
     extremos_inferior <- datos %>%
       filter(y_ingLab_m_ha_im < umbral_inferior)
     
@@ -429,7 +343,7 @@ datos <- datos %>%
     cat("Número de observaciones por debajo del límite inferior (1%):", n_inferior, "\n")
     summary(extremos_inferior$y_ingLab_m_ha_im)
     
-    # 2.2. Resumen de outliers por oficio
+    # Resumen de outliers por oficio
     tabla_extremos_oficio <- table(extremos$oficio)
     print(tabla_extremos_oficio)
     
@@ -442,9 +356,9 @@ datos <- datos %>%
       )
     print(resumen_extremos_oficio)
     
-    # 3. Visualización en escala original
+    # Visualización en escala original
     
-    # 3.1. Boxplot con líneas de percentil 1% y 99%
+    # Boxplot con líneas de percentil 1% y 99%
     b <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
       geom_boxplot() +
       theme_bw() +
@@ -454,7 +368,7 @@ datos <- datos %>%
       geom_hline(yintercept = umbral_inferior, linetype = "solid", color = "blue", linewidth = 0.7) +
       geom_hline(yintercept = umbral_superior, linetype = "solid", color = "blue", linewidth = 0.7)
     
-    # 3.2. Boxplot con líneas de media ± 2*sd
+    # Boxplot con líneas de media ± 2*sd
     mean_val <- mean(datos$y_ingLab_m_ha_im, na.rm = TRUE)
     sd_val   <- sd(datos$y_ingLab_m_ha_im, na.rm = TRUE)
     low_2sd  <- mean_val - 2 * sd_val
@@ -475,7 +389,7 @@ datos <- datos %>%
     datos <- datos %>% 
       mutate(out_y_ingLab_m_ha_im = ifelse(y_ingLab_m_ha_im < low_2sd | y_ingLab_m_ha_im > up_2sd, 1, 0))
     
-    # 5. Visualización en escala logarítmica
+    # Visualización en escala logarítmica
     
     # La variable ingreso por hora presenta una gran asimetría 
     # (la mediana es 5.055 mientras que el máximo es 350.583), 
@@ -487,7 +401,7 @@ datos <- datos %>%
     # valores extremos y a visualizar mejor la dispersión de la mayoría de 
     # los datos.
     
-    # 5.1. Boxplot con percentiles 1% y 99% (escala log)
+    # Boxplot con percentiles 1% y 99% (escala log)
     plot1 <- ggplot(datos, aes(x = "", y = y_ingLab_m_ha_im)) +
       geom_boxplot() +
       scale_y_log10() +
@@ -498,7 +412,7 @@ datos <- datos %>%
       geom_hline(yintercept = umbral_inferior, linetype = "solid", color = "blue", size = 0.7) +
       geom_hline(yintercept = umbral_superior, linetype = "solid", color = "blue", size = 0.7)
     
-    # 5.2. Boxplot con media ± 2*sd calculados sobre los datos log
+    # Boxplot con media ± 2*sd calculados sobre los datos log
     log_data <- log10(datos$y_ingLab_m_ha_im)
     mean_log <- mean(log_data, na.rm = TRUE)
     sd_log   <- sd(log_data, na.rm = TRUE)
@@ -519,7 +433,7 @@ datos <- datos %>%
     
     
     
-    #### Despues de revisar se observa que los valores altos de salario 
+    #### se observa que los valores altos de salario 
     ##   por son viables, sin embargo, hay valore extremadamente bajo
     #    si bien, es posible que se deba a errores de digitación(falta un cero)
     #    es dificil comprobar con la informacion disponible, lo conveniente seria
@@ -527,7 +441,7 @@ datos <- datos %>%
     
     extremos_inferior$y_ingLab_m_ha_im
     
-     ## 6. winsorizing 
+     ##winsorizing 
     
     # Calcular el valor del percentil 5
     p5 <- quantile(datos$y_ingLab_m_ha_im, 0.05, na.rm = TRUE)
@@ -569,7 +483,7 @@ datos <- datos %>%
     variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
                                  "gender", "estrato1", "formal", 
                                  "sizeFirm", "H_Head", "Head_Female", 
-                                 "maxEducLevel_im", "regSalud_im", "cotPension_im","relab","oficio")
+                                 "maxEducLevel_im", "cotPension_im","relab","oficio")
     datos_sub <- datos[, variables_seleccionadas]
     resumen <- dfSummary(datos_sub, style = "grid", plain.ascii = FALSE)
     print(resumen, method = "browser")
@@ -582,9 +496,7 @@ datos <- datos %>%
     # Variables categóricas
     categorical_vars <- c("gender", "estrato1", "relab", "formal", "sizeFirm",
                           "H_Head", "Head_Female", "maxEducLevel_im", 
-                          "regSalud_im", "cotPension_im")
-    
-
+                           "cotPension_im")
     
     # Etiquetas de las variables
     
@@ -606,13 +518,14 @@ datos <- datos %>%
     
     # relab: 1=Obrero..., 2=Obrero..., etc.
     datos_sub$relab <- factor(datos_sub$relab,
-                              levels = c(1, 2, 3, 4, 5, 6, 9),
+                              levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
                               labels = c("Obrero/emp. empresa particular",
                                          "Obrero/emp. gobierno",
                                          "Empleado doméstico",
                                          "Trabajador cuenta propia",
                                          "Patrón o empleador",
                                          "Trabajador familiar sin remuneración",
+                                         "Trabajador sin remuneracionempresas/negocios de otros hogares"
                                          "Otro"))
     
     # formal: 1=formal (seguridad social), 0=otro
@@ -646,14 +559,6 @@ datos <- datos %>%
                                                    "Terciario",
                                                    "N/A"))
     
-    # regSalud_im: 1=r. contributivo, 2=r. especial, etc.
-    datos_sub$regSalud_im <- factor(datos_sub$regSalud_im,
-                                    levels = c(1, 2, 3, 9),
-                                    labels = c("R. contributivo",
-                                               "R. especial",
-                                               "R. subsidiado",
-                                               "N/A"))
-    
     # cotPension_im: 1=cotiza pension, 2=no cotiza, etc.
     datos_sub$cotPension_im <- factor(datos_sub$cotPension_im,
                                       levels = c(1, 2, 3, 9),
@@ -663,7 +568,10 @@ datos <- datos %>%
                                                  "N/A"))
     
     
+#######################################################   
     # Resumen descriptivo de variables numéricas
+######################################################
+    
     
     # estadísticas de cada variable numérica
     numeric_summary <- datos_sub %>%
@@ -734,10 +642,8 @@ datos <- datos %>%
             xlab = "Jefatura de hogar",
             ylab = "Edad (años)")
     
-    
-    ## grafico ingreso
-    
-    ##distribucio ingreso 
+
+    ##distribucion ingreso 
     
     library(ggplot2)
     
@@ -758,7 +664,7 @@ datos <- datos %>%
     umbral_inferior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.01, na.rm = TRUE)
     umbral_superior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.99, na.rm = TRUE)
     
-    # 2) escala original (percentiles 1% y 99%)
+    # escala original (percentiles 1% y 99%)
     e <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
       geom_boxplot() +
       theme_bw() +
@@ -843,8 +749,9 @@ datos <- datos %>%
            fill = "Género") +
       theme_minimal()
     
-    
+#################################################################### 
     ### tablas cruzadas variable categorica vs variable continua
+####################################################################
     
     # Tabla por gender
     tabla_gender <- datos_sub %>%
@@ -914,7 +821,6 @@ datos <- datos %>%
     print(tabla_formal)
     print(xtable(tabla_formal), file = "tabla_formal.tex", type = "latex")
     
-    
     #tabla ingreso, edad, sexo 
     
     # Definir cortes y etiquetas para los grupos de edad a partir de 18 años
@@ -946,14 +852,15 @@ datos <- datos %>%
     print(xtable(tabla_ingreso), file = "tabla_ingreso.tex", type = "latex")
     
     
-    
+#########################################################    
     ###Resumen descriptivo de variables categóricas 
+#########################################################
     
     var_order <- c("gender", "H_Head", "Head_Female", "maxEducLevel_im", 
-                   "estrato1", "cotPension_im", "regSalud_im", 
+                   "estrato1", "cotPension_im", 
                    "formal", "relab", "sizeFirm")
     
-    # 1) resumen con Frecuencia y %
+    # resumen con Frecuencia y %
     
     categorical_summary <- datos_sub %>%
       # Selecciona las columnas definidas en categorical_vars
@@ -1074,33 +981,6 @@ datos <- datos %>%
               title = "Tabla de Contingencia entre Cotiza pension y Formalidad",
               label = "tab:contingencia")    
     
-    
-    ##  formal vs. regSalud_im
-    CrossTable(
-      datos_sub$regSalud_im,
-      datos_sub$formal, 
-      prop.r    = TRUE,   # proporción por fila
-      prop.c    = FALSE,  # no proporción por columna
-      prop.t    = FALSE,   # proporción sobre total
-      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
-    )
-    
-    # Realizar la prueba chi-cuadrado y capturar los resultados
-    chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$regSalud_im))
-    
-    # Imprimir los resultados en la consola
-    cat("\nChi-Square Test Results:\n")
-    cat(paste("Chi-squared:", chi_test$statistic, "\n"))
-    cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
-    cat(paste("P-value:", chi_test$p.value, "\n"))
-    
-    tabla4 <- as.data.frame(tabla$t)
-    # Guardar tabla de contingencia en LaTeX
-    stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia4.tex",
-              title = "Tabla de Contingencia entre Regimen de salud y Formalidad",
-              label = "tab:contingencia")    
-    
-    
     ##Analisis de caracteristicas socioeconomicas y demograficas 
     
     #edad vs sexo 
@@ -1114,6 +994,8 @@ datos <- datos %>%
          labels=c("Hombre","Mujer"))
     
 
+    
+    
 ## --- Tratamniento Missing Values --- ##
 
 # -- NA / Missing Values - 2 aproximaciones -- #
