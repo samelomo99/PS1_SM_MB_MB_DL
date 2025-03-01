@@ -247,7 +247,7 @@ table(datos$cotPension)
 #recodificamos cotPension=1 cuando pension_status=1
 datos <- datos %>%
   mutate(cotPension_im = ifelse(pension_status == 1, 1, cotPension))
-table(datos$cotPension)
+table(datos$cotPension_im)
 
 ###################
 # relab 
@@ -257,7 +257,7 @@ table(datos$cotPension)
   # informacion de ingreso ya que por definición no generan 
   #remuneración que se pueda modelar.
 
-table(datos$relab)
+
 
 tabla_resumen <- datos %>%
   filter(relab %in% c(6, 7)) %>%
@@ -309,8 +309,7 @@ datos <- datos %>%
     summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
     
     # gráfico de missing values
-    plot_missing(datos)
-    
+  
     #########################################################
     ###manejo de outliers 
     #########################################################
@@ -321,8 +320,7 @@ datos <- datos %>%
     library(gridExtra)
     
     # Exploración inicial de la variable de ingreso
-    summary(datos$y_ingLab_m_ha_im)
-    boxplot(datos$y_ingLab_m_ha_im, main = "Boxplot de y_ingLab_m_ha_im (imputada)")
+
     
     # Definimos los umbrales para marcar outliers (1% y 99%)
     p_inferior <- 0.01
