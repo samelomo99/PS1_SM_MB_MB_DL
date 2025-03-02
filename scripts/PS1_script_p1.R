@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------#
+#-------------------------------------------------------------------# ----
 ## --------------- Problem Set 1: Predicting Income -------------- ##
 ## - Santiago Melo - Miguel Blanco - María Bernal - Diana Lopera - ##
 #-------------------------------------------------------------------#
@@ -9,7 +9,6 @@
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
 
-# Instalar y cargar todos los paquetes necesarios en una sola llamada
 pacman::p_load(
   readr,        # Importar datos (ya incluido en tidyverse)
   labelled,     # Manejo de etiquetas
@@ -31,13 +30,17 @@ pacman::p_load(
   patchwork,    # Combinación de gráficos
   caret,         # For predictive model assessment
   purrr,
-  kableExtra,
+  kableExtra,   # Opciones adicionales para kable()
+  dplyr,          # Manipulación de datos
   summarytools,
-  xtable
- )
+  knitr,          # kable() para generar tablas en LaTeX
+  xtable,
+  tidyr,
+  gmodels
+)
 
 
-# ------------------------------------------------------------- #
+# ------------------------------------------------------------- # ----
 ## ------------------------- PUNTO 2 ------------------------- ##
 # ------------------------------------------------------------- #
 
@@ -82,7 +85,7 @@ str(datos)
 # NÚMERO DE MENORES EN EL HOGAR
 
 # Crear variable indicador de menores de 18 años
-library(dplyr)
+
 datos <- datos %>%
   mutate(flag = ifelse(age <= 6, 1, 0))
 
@@ -106,7 +109,7 @@ datos <- datos %>%
 
 table(datos$H_Head)
 
-# JEFE DE HOGAR MUJER
+# JEFE DE HOGAR MUJER 
 
 # Renombramos la variable sex=gender (Nota. gender: 0=mujer 1=hombre)
 datos <- as_tibble(datos) %>% rename(gender=sex)
@@ -124,7 +127,7 @@ datos <- datos %>% filter(age >= 18, ocu == 1)
 summary(datos$age) # Comprobamos que el mínimo es 18 años.
 
 
-# ------------------------------------ #
+# ------------------------------------ # ----
 # ------ INSPECCIÓN DE LOS DATOS ----- #
 # ------------------------------------ #
 
@@ -133,7 +136,7 @@ datos <- as_tibble(datos)
 head(datos)
 
 # Inspección básica de la estructura y resumen de datos
-library(skimr)
+
 skim_data <- skim(datos)
 View(skim_data) # abrirlo en el visor de datos 
 
@@ -169,7 +172,7 @@ pdf("plot_missing_val.pdf", width = 8, height = 6)
 plot_missing(datos_filtrados)  
 dev.off()  # Cierra el dispositivo PDF
 
-# ------------------------------------ #
+# ------------------------------------ #----
 # ----- PREPARACIÓN DE LOS DATOS ----- #
 # ------------------------------------ #
 
