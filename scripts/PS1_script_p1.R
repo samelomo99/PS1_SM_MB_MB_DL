@@ -176,9 +176,9 @@ dev.off()  # Cierra el dispositivo PDF
 # ----- PREPARACIÓN DE LOS DATOS ----- #
 # ------------------------------------ #
 
-###################
+
 ## maxEducLevel         
-###################
+
 
 ggplot(datos, aes(maxEducLevel)) +
   geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -194,9 +194,9 @@ mode_edu <- as.numeric(names(sort(table(datos$maxEducLevel), decreasing = TRUE)[
 datos <- datos  %>%
   mutate(maxEducLevel_im = ifelse(is.na(maxEducLevel) == TRUE, mode_edu , maxEducLevel))
 
-###################
+
 ##cotPension
-###################
+
 
 table(datos$cotPension)
 
@@ -248,15 +248,13 @@ datos <- datos %>%
   mutate(cotPension_im = ifelse(pension_status == 1, 1, cotPension))
 table(datos$cotPension_im)
 
-###################
+
 # relab 
-###################
+
   # la variable relab me indica el tipo de relacion laboral,
   # se considera eliminar registros cuya categoria es 6 y 7, y no tiene
   # informacion de ingreso ya que por definición no generan 
   #remuneración que se pueda modelar.
-
-
 
 tabla_resumen <- datos %>%
   filter(relab %in% c(6, 7)) %>%
@@ -269,16 +267,15 @@ print(tabla_resumen)
 datos <- datos %>% 
   filter(!(relab %in% c(6, 7) & is.na(y_ingLab_m_ha)))          
 
-###################
+
 ###y_ingLab_m_ha
-###################
+
 
 # Numero de missing de la variable 
 is.na(datos$y_ingLab_m_ha) %>% table()
 
 #distribución de la variable ingreso 
 
-    
 ggplot(datos, aes(y_ingLab_m_ha)) +
       geom_histogram(color = "#000000", fill = "#0099F8") +
       geom_vline(xintercept = median(datos$y_ingLab_m_ha, na.rm = TRUE), linetype = "dashed", color = "red") +
@@ -310,41 +307,30 @@ ggplot(datos, aes(y_ingLab_m_ha_im)) +
 summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
     
 
+# No obstante, creamos otra variable con el uso de media como reemplazo de NA
+datos <- datos  %>%
+  mutate(y_ingLab_m_ha_mean = ifelse(is.na(y_ingLab_m_ha) == TRUE, mean(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
 
-#########################################################
-###manejo de outliers 
-#########################################################
+ggplot(datos, aes(y_ingLab_m_ha_mean)) +
+  geom_histogram(color = "#000000", fill = "#0099F8") +
+  geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
+  ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 18))
+
+summary(datos[, c("y_ingLab_m_ha_mean", "y_ingLab_m_ha")])
+
+
+# ------------------------------------ #----
+### Manejo de outliers 
+# ------------------------------------ #
     
-# Librerías necesarias
-library(dplyr)
-library(ggplot2)
-library(gridExtra)
-  
 # Exploración inicial de la variable de ingreso
 
 # Definimos los umbrales para marcar outliers (1% y 99%)
 p_inferior <- 0.01
 p_superior <- 0.99
-
-    # No obstante, creamos otra variable con el uso de media como reemplazo de NA
-    datos <- datos  %>%
-      mutate(y_ingLab_m_ha_mean = ifelse(is.na(y_ingLab_m_ha) == TRUE, mean(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
-    
-    ggplot(datos, aes(y_ingLab_m_ha_mean)) +
-      geom_histogram(color = "#000000", fill = "#0099F8") +
-      geom_vline(xintercept = median(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "red") +
-      geom_vline(xintercept = mean(datos$y_ingLab_m_ha_im, na.rm = TRUE), linetype = "dashed", color = "blue") +  
-      ggtitle("labor income salaried - nomial hourly - all occ+tip+comis") +
-      theme_classic() +
-      theme(plot.title = element_text(size = 18))
-    
-    summary(datos[, c("y_ingLab_m_ha_mean", "y_ingLab_m_ha")])
-    
-    # gráfico de missing values
-  
-    #########################################################
-    ###manejo de outliers 
-    #########################################################
 
     
 umbral_inferior <- quantile(datos$y_ingLab_m_ha_im, probs = p_inferior, na.rm = TRUE)
