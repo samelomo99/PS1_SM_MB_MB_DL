@@ -605,8 +605,83 @@ tabla3 <- as.data.frame(tabla$t)
 
 # ------------------------------------ #----
 #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
-# ------------------------------------ #
+# ------------------------------------------ #
 
+###Generamos la tabla descriptiva del informe 
+
+# estadísticas de cada variable numérica
+numeric_summary <- datos_sub %>%
+  select_at(numeric_vars) %>%     # Seleccionar las columnas definidas en numeric_vars
+  pivot_longer(cols = everything(), 
+               names_to = "Variable", 
+               values_to = "Valor") %>% 
+  
+  #etiquetas de las variables 
+  mutate(Variable = dplyr::recode(Variable,
+                                  "age" = "Edad (años)",
+                                  "nmenores" = "Número de menores",
+                                  "y_ingLab_m_ha_wins" = "Salario por Hora(todas las ocupaciones)"
+  )) %>%
+  group_by(Variable) %>% 
+  summarise(
+    n      = n(),
+    Mean   = mean(Valor, na.rm = TRUE),
+    SD     = sd(Valor, na.rm = TRUE),
+    Min    = min(Valor, na.rm = TRUE),
+    Median = median(Valor, na.rm = TRUE),
+    Max    = max(Valor, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Visualizar en la consola (como data frame)
+numeric_summary
+numeric_summary %>% 
+  kable(format = "pandoc")
+
+
+var_order <- c("gender", "maxEducLevel_im", "estrato1", "sizeFirm")
+
+# resumen con Frecuencia y %
+
+categorical_summary <- datos_sub %>%
+  # Selecciona las columnas definidas en categorical_vars
+  select_at(categorical_vars) %>% 
+  pivot_longer(cols = everything(), 
+               names_to = "Variable", 
+               values_to = "Categoria") %>%
+  group_by(Variable, Categoria) %>%
+  summarise(Frecuencia = n(), .groups = "drop") %>%
+  group_by(Variable) %>%
+  mutate(
+    Porcentaje = paste0(
+      round(100 * Frecuencia / sum(Frecuencia), 1), "%"
+    )
+  ) %>%
+  ungroup() %>%
+  # Convertir Variable a factor con el orden especificado
+  mutate(Variable = factor(Variable, levels = var_order)) %>%
+  # Ordenar primero por Variable (en el orden de var_order) 
+  # y luego descendentemente por Frecuencia
+  arrange(Variable, desc(Frecuencia))
+
+#Visualizar la tabla en la consola
+
+# a) Como data frame
+categorical_summary
+
+# b) Como tabla Markdown (en la consola)
+categorical_summary %>% 
+  kable(format = "pandoc")
+
+
+#### Analisis descriptivo (combinación de variables)
+
+##se genera esta copia para no alterar datos_sub
+variables_descriptivas <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
+                             "gender", "estrato1", "sizeFirm",
+                              "maxEducLevel_im","oficio")
+datos_sub2 <- datos[,variables_descriptivas ]
+  
 # Variables numéricas
 numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")    
 
@@ -614,18 +689,18 @@ numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")
 categorical_vars <- c("gender", "estrato1",  "sizeFirm", "maxEducLevel_im")
 
 # Etiquetas de las variables
-datos_sub$gender <- factor(datos_sub$gender,
+datos_sub2$gender <- factor(datos_sub$gender,
                            levels = c(0, 1),
                            labels = c("Mujer", "Hombre"))
 
 # estrato1: 1=Estrato 1, 2=Estrato 2, 3=Estrato 3, 4=Estrato 4, 5=Estrato 5, 6=Estrato 6
-datos_sub$estrato1 <- factor(datos_sub$estrato1,
+datos_sub2$estrato1 <- factor(datos_sub$estrato1,
                              levels = c(1, 2, 3, 4, 5, 6),
                              labels = c("Estrato 1", "Estrato 2", "Estrato 3",
                                         "Estrato 4", "Estrato 5", "Estrato 6"))
 
 # sizeFirm: 1= self-employed, 2= 2-5 trabajadores, etc.
-datos_sub$sizeFirm <- factor(datos_sub$sizeFirm,
+datos_sub2$sizeFirm <- factor(datos_sub$sizeFirm,
                              levels = c(1, 2, 3, 4, 5),
                              labels = c("Self-employed",
                                         "2-5 trabajadores",
@@ -634,7 +709,7 @@ datos_sub$sizeFirm <- factor(datos_sub$sizeFirm,
                                         ">50 trabajadores"))
 
 # maxEducLevel_im: 1=Ninguno, 2=Preescolar, etc.
-datos_sub$maxEducLevel_im <- factor(datos_sub$maxEducLevel_im,
+datos_sub2$maxEducLevel_im <- factor(datos_sub$maxEducLevel_im,
                                     levels = c(1, 2, 3, 4, 5, 6, 7, 9),
                                     labels = c("Ninguno",
                                                "Preescolar",
@@ -645,48 +720,20 @@ datos_sub$maxEducLevel_im <- factor(datos_sub$maxEducLevel_im,
                                                "Terciario",
                                                "N/A"))
 
-
-##grafico edad 
-    
-library(ggplot2)
-    
-p <- ggplot(datos_sub, aes(x = "", y = age)) +
-      geom_boxplot(fill = "skyblue", outlier.shape = 16, outlier.alpha = 0.6) +
-      scale_y_continuous(limits = c(min(datos_sub$age, na.rm = TRUE), 
-                                    max(datos_sub$age, na.rm = TRUE))) +
-      labs(
-        title = "Boxplot de Edad",
-        x = "",
-        y = "Edad"
-      ) +
-      theme_minimal()
-    
-print(p)
-    
-ggsave("boxplot_edad.pdf", plot = p, device = "pdf", width = 6, height = 4)
-    
     
 #edad y sexo 
 boxplot(age ~ factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
             data = datos,
             xlab = "Género",
             ylab = "Edad (años)")
-    
-    
-#ingreso por sexo 
-boxplot(y_ingLab_m_ha_wins ~ factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
-            data = datos,
-            xlab = "Género",
-            ylab = "Ingreso laboral por hora(log)",
-            log = "y")
-    
+  
     
 #ingreso, edad, sexo 
     
-# Definir los cortes: de 18 a 22, 23 a 27, … hasta 93-94 (recordar que la edad máxima es 94)
-breaks <- c(18, seq(23, 93, by = 5), 95)
+# Definir cortes y etiquetas para los grupos de edad a partir de 18 años
+breaks <- c(18, seq(23, 95, by = 5), 95)
 labels_age <- paste(breaks[-length(breaks)], breaks[-1] - 1, sep = "-")
-  
+
 # Crear la variable categórica para edad
 datos$age_cat <- cut(datos$age,
                          breaks = breaks,
@@ -704,32 +751,10 @@ ggplot(datos, aes(x = age_cat, y = y_ingLab_m_ha_wins,
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             panel.grid.minor = element_blank())
-    
-#----------------------------------------------------  
-##sexo y sizefirm  REVISARR!!!!!!!!!!
-    
-# Agrupar y calcular el ingreso laboral promedio por sexo y formalidad
-tabla_sizefirm <- datos %>%
-      group_by(gender, sizeFirm) %>%
-      summarise(ingreso_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE)) %>%
-      ungroup() %>%
-      mutate(
-        gender_label = factor(gender, levels = c(1, 0), labels = c("Hombre", "Mujer")),
-        formal_label = factor(sizeFirm, levels = c(1, 0), labels = c("Formal", "Informal"))
-      )
-    
-# Gráfico de barras agrupado
-ggplot(tabla_formalidad, aes(x = formal_label, y = ingreso_mean, fill = gender_label)) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      labs(x = "Formalidad",
-           y = "Ingreso laboral promedio",
-           title = "Ingreso laboral promedio según Sexo y Formalidad",
-           fill = "Género") +
-      theme_minimal()
-#----------------------------------------------------  
-    
+
+
 # Tabla por gender
-tabla_gender <- datos_sub %>%
+tabla_gender <- datos_sub2 %>%
     group_by(gender) %>%
     summarise(
     edad_mean = mean(age, na.rm = TRUE),
@@ -742,7 +767,7 @@ print(xtable(tabla_gender), file = "tabla_gender.tex", type = "latex")
   
     
 # Tabla por nivel educativo
-tabla_nivel_educativo <- datos_sub %>%
+tabla_nivel_educativo <- datos_sub2 %>%
     group_by(maxEducLevel_im) %>%
     summarise(
     ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
@@ -752,7 +777,7 @@ print(tabla_nivel_educativo)
 print(xtable(tabla_nivel_educativo), file = "tabla_nivel_educativo.tex", type = "latex")
     
 # Tabla por estrato1
-tabla_estrato <- datos_sub %>%
+tabla_estrato <- datos_sub2 %>%
     group_by(estrato1) %>%
     summarise(
     ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
@@ -761,23 +786,32 @@ tabla_estrato <- datos_sub %>%
 print(tabla_estrato)
 print(xtable(tabla_estrato), file = "tabla_estrato.tex", type = "latex")
   
-    
-#edad vs sexo 
-    
-boxplot(edad~sexo,
-            datos,
-            xlab="Sexo",
-            ylab="Edad (anos)", 
-            xaxt="n")
-axis(1, at=1:2,
-         labels=c("Hombre","Mujer"))
-    
+# tabla por sizefirm
+
+tabla_sizefirm<- datos_sub2 %>%
+  group_by(sizeFirm) %>%
+  summarise(
+    ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+    ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+  )
+print(tabla_sizefirm)
+print(xtable(tabla_sizefirm), file = "tabla_sizefirm.tex", type = "latex")
+
+# tabla por oficio
+
+tabla_oficio<- datos_sub2 %>%
+  group_by(oficio) %>%
+  summarise(
+    ingreso_lab_hora_mean = mean(y_ingLab_m_ha_wins, na.rm = TRUE),
+    ingreso_lab_hora_mediana = median(y_ingLab_m_ha_wins, na.rm = TRUE)
+  )
+print(tabla_oficio)
+print(xtable(tabla_oficio), file = "tabla_oficio.tex", type = "latex")
+
+
 #tabla ingreso, edad, sexo 
     
-# Definir cortes y etiquetas para los grupos de edad a partir de 18 años
-breaks <- c(18, seq(23, 95, by = 5), 95)
-labels_age <- paste(breaks[-length(breaks)], breaks[-1] - 1, sep = "-")
-    
+
 # Crear las variables de grupos de edad y de sexo con etiquetas
 datos <- datos %>%
 mutate(age_cat = cut(age, 
@@ -799,96 +833,8 @@ tabla_ingreso <- datos %>%
 # Imprimir la tabla en la consola
 print(tabla_ingreso)
     
-# Exportar la tabla a un archivo LaTeX para Overleaf
-print(xtable(tabla_ingreso), file = "tabla_ingreso.tex", type = "latex")
-    
-    
-#########################################################    
-    ###Resumen descriptivo de variables 
-#########################################################
-  
-    
-# estadísticas de cada variable numérica
-numeric_summary <- datos_sub %>%
-    select_at(numeric_vars) %>%     # Seleccionar las columnas definidas en numeric_vars
-    pivot_longer(cols = everything(), 
-                   names_to = "Variable", 
-                   values_to = "Valor") %>% 
-      
-#etiquetas de las variables 
-mutate(Variable = dplyr::recode(Variable,
-                                      "age" = "Edad (años)",
-                                      "nmenores" = "Número de menores",
-                                      "y_ingLab_m_ha_wins" = "Salario por Hora(todas las ocupaciones)"
-      )) %>%
-      group_by(Variable) %>% 
-      summarise(
-        n      = n(),
-        Mean   = mean(Valor, na.rm = TRUE),
-        SD     = sd(Valor, na.rm = TRUE),
-        Min    = min(Valor, na.rm = TRUE),
-        Median = median(Valor, na.rm = TRUE),
-        Max    = max(Valor, na.rm = TRUE),
-        .groups = "drop"
-      )
-    
-# Visualizar en la consola (como data frame)
-numeric_summary
-  numeric_summary %>% 
-  kable(format = "pandoc")
-    
-# Generar la salida en formato LaTeX (para Overleaf)
-numeric_summary %>% 
-    kable(format = "latex", booktabs = TRUE,
-    caption = "Resumen de Variables Numéricas") %>% 
-    kable_styling(latex_options = c("striped", "hold_position"))
-    
 
-var_order <- c("gender", "maxEducLevel_im", "estrato1", "cotPension_im", "sizeFirm")
-    
-# resumen con Frecuencia y %
-    
-categorical_summary <- datos_sub %>%
-# Selecciona las columnas definidas en categorical_vars
-select_at(categorical_vars) %>% 
-      pivot_longer(cols = everything(), 
-      names_to = "Variable", 
-      values_to = "Categoria") %>%
-      group_by(Variable, Categoria) %>%
-      summarise(Frecuencia = n(), .groups = "drop") %>%
-      group_by(Variable) %>%
-      mutate(
-        Porcentaje = paste0(
-          round(100 * Frecuencia / sum(Frecuencia), 1), "%"
-        )
-      ) %>%
-      ungroup() %>%
-      # Convertir Variable a factor con el orden especificado
-      mutate(Variable = factor(Variable, levels = var_order)) %>%
-      # Ordenar primero por Variable (en el orden de var_order) 
-      # y luego descendentemente por Frecuencia
-      arrange(Variable, desc(Frecuencia))
-    
- #Visualizar la tabla en la consola
-    
- # a) Como data frame
- categorical_summary
-    
- # b) Como tabla Markdown (en la consola)
- categorical_summary %>% 
- kable(format = "pandoc")
-    
- # Generar la salida en formato LaTeX
-    
- categorical_summary %>%
-     kable(format = "latex", booktabs = TRUE,
-     caption = "Resumen de Variables Categóricas (con Etiquetas y %)") %>%
-     kable_styling(latex_options = c("striped", "hold_position"))
-    
-
-
-
- ##Resumen de Estadisticas descriptivas variables modelo   
+ ##Resumen de Estadisticas usando la funcion que genera las descriptivas en HTML
     
  vars_modelo <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
                                  "gender", "estrato1", "sizeFirm", "maxEducLevel_im", "oficio")
@@ -896,22 +842,26 @@ select_at(categorical_vars) %>%
     resumen <- dfSummary(descriptivas, style = "grid", plain.ascii = FALSE)
     print(resumen, method = "browser")   
     
+
+    # ----------------!!!!REVISAR MS SM!!! -------------------- #---- 
+###creo que esta parte no deberia ir porque en teoria ya se hizo arriba: REVISAR MS SM  
+    
 ## --- Tratamniento Missing Values --- ##
 
 # -- NA / Missing Values - 2 aproximaciones -- #
-is.na(datos$y_ingLab_m_ha)
+    is.na(datos$y_ingLab_m_ha)
 
 # 1. Eliminamos NA
-datos1 <- datos %>% filter(!is.na(y_ingLab_m_ha))
+    datos1 <- datos %>% filter(!is.na(y_ingLab_m_ha))
 
 
 # 2. Reemplazamos NA por el valor medio
 
-m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
-datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
+    m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
+    datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
 
 # Eliminamos NA de maxEducLevel
-datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
+    datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
 
 
 # Revisión rápida de los datos
