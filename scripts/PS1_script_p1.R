@@ -325,8 +325,9 @@ summary(datos[, c("y_ingLab_m_ha_mean", "y_ingLab_m_ha")])
 # ------------------------------------ #----
 ### Manejo de outliers 
 # ------------------------------------ #
-    
-# Exploración inicial de la variable de ingreso
+
+
+# --------Exploración inicial de la variable de ingreso--------- #---- 
 
 # Definimos los umbrales para marcar outliers (1% y 99%)
 p_inferior <- 0.01
@@ -513,8 +514,17 @@ combined_plot_all <-grid.arrange(b,plot1, e, e_log, ncol = 2)
 ggsave("boxplots_ing_all.pdf",plot   = combined_plot_all,device = "pdf",width  = 10,height = 8)
     
     
-##Identificando dependencia entre variable categoricas relacionadas con la firma y mercado laboral
-  
+
+# ------------------------------------------------------------------------------------------------ #----
+# Identificando dependencia entre variable categoricas relacionadas con la firma y mercado laboral
+#---------------------------------------------------------------------------------------------------#
+
+variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
+                             "gender", "estrato1", "formal", 
+                             "sizeFirm", "H_Head", "Head_Female", 
+                             "maxEducLevel_im", "cotPension_im","relab","oficio")
+datos_sub <- datos[, variables_seleccionadas]
+
 ###sizefirm vs. formal 
 CrossTable(
     datos_sub$sizeFirm,
@@ -542,14 +552,6 @@ stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia1.
     
 ### relab vs. formal           
 
-    
-library(dplyr)       # Manipulación de datos
-library(ggplot2)     # Gráficos
-library(gridExtra)   # Disposición de gráficos en grilla
-library(knitr)       # kable() para generar tablas en LaTeX
-library(kableExtra)  # Opciones adicionales para kable()
-library(summarytools)
-    
 CrossTable(
       datos_sub$relab,
       datos_sub$formal, 
@@ -601,18 +603,10 @@ stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia3.
           label = "tab:contingencia")    
     
     
-    
-############################################
+# ------------------------------------ #----
 #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
-############################################       
+# ------------------------------------ #
 
-    
-variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age", 
-                                 "gender", "estrato1", "formal", 
-                                 "sizeFirm", "H_Head", "Head_Female", 
-                                 "maxEducLevel_im", "cotPension_im","relab","oficio")
-datos_sub <- datos[, variables_seleccionadas]
-  
     
 # Variables numéricas
 numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")    
