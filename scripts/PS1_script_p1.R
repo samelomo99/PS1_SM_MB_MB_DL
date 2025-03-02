@@ -275,14 +275,8 @@ datos <- datos %>%
 
 # Numero de missing de la variable 
 is.na(datos$y_ingLab_m_ha) %>% table()
-    
-#distribucion de la variable ingreso 
 
-    
-# Numero de missing de la variable 
-    is.na(datos$y_ingLab_m_ha) %>% table()
-    
-    #distribución de la variable ingreso 
+#distribución de la variable ingreso 
 
     
 ggplot(datos, aes(y_ingLab_m_ha)) +
