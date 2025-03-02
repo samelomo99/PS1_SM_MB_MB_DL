@@ -525,171 +525,138 @@ variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age",
                              "maxEducLevel_im", "cotPension_im","relab","oficio")
 datos_sub <- datos[, variables_seleccionadas]
 
+datos_sub <- datos_sub %>%
+  mutate(across(all_of(categorical_vars), as.character))
+
+## crea un nuevo dataframe con las variables de la firma 
+datos_sub_cat <- datos_sub %>%
+  dplyr::select(formal, sizeFirm, relab, cotPension_im)
+
+
+##Tablas de contingencia entre variables de la firma para definir dependencia
+
 ###sizefirm vs. formal 
-CrossTable(
-    datos_sub$sizeFirm,
-    datos_sub$formal, 
-    prop.r    = TRUE,   # proporción por fila
-    prop.c    = FALSE,  # no proporción por columna
-    prop.t    = FALSE,   # proporción sobre total
-    prop.chisq= FALSE    # incluir prueba de chi-cuadrado
-    )
-    
+tabla<-CrossTable(
+  datos_sub$sizeFirm,
+  datos_sub$formal, 
+  prop.r    = TRUE,   # proporción por fila
+  prop.c    = FALSE,  # no proporción por columna
+  prop.t    = FALSE,   # proporción sobre total
+  prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+)
+
+
 # Realizar la prueba chi-cuadrado y capturar los resultados
-chi_test <- chisq.test(table(datos_sub$formal, datos_sub$sizeFirm))
-    
+chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$sizeFirm))
+
 # Imprimir los resultados en la consola
 cat("\nChi-Square Test Results:\n")
 cat(paste("Chi-squared:", chi_test$statistic, "\n"))
 cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
-    
+
 tabla1 <- as.data.frame(tabla$t)
 # Guardar tabla de contingencia en LaTeX
-stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia1.tex",
-              title = "Tabla de Contingencia entre Tamaño de Firma y Formalidad",
-              label = "tab:contingencia")
-    
+stargazer(tabla1, type = "latex", summary = FALSE, out = "tabla_contingencia1.tex",
+          title = "Tabla de Contingencia entre Tamaño de Firma y Formalidad",
+          label = "tab:contingencia")
+
 ### relab vs. formal           
 
-CrossTable(
-      datos_sub$relab,
-      datos_sub$formal, 
-      prop.r    = TRUE,   # proporción por fila
-      prop.c    = FALSE,  # no proporción por columna
-      prop.t    = FALSE,   # proporción sobre total
-      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
-    )
-    
+tabla<-CrossTable(
+  datos_sub$relab,
+  datos_sub$formal, 
+  prop.r    = TRUE,   # proporción por fila
+  prop.c    = FALSE,  # no proporción por columna
+  prop.t    = FALSE,   # proporción sobre total
+  prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+)
+
 # Realizar la prueba chi-cuadrado y capturar los resultados
-chi_test <- chisq.test(table(datos_sub$formal, datos_sub$relab))
-    
+chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$relab))
+
 # Imprimir los resultados en la consola
 cat("\nChi-Square Test Results:\n")
 cat(paste("Chi-squared:", chi_test$statistic, "\n"))
 cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
-    
+
 tabla2 <- as.data.frame(tabla$t)
 # Guardar tabla de contingencia en LaTeX
-stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia2.tex",
-              title = "Tabla de Contingencia entre Tipo de ocupacion y Formalidad",
-              label = "tab:contingencia")
-    
+stargazer(tabla2, type = "latex", summary = FALSE, out = "tabla_contingencia2.tex",
+          title = "Tabla de Contingencia entre Tipo de ocupacion y Formalidad",
+          label = "tab:contingencia")
+
 ### formal vs. cotPension_im          
-    
-CrossTable(
-      datos_sub$cotPension_im,
-      datos_sub$formal, 
-      prop.r    = TRUE,   # proporción por fila
-      prop.c    = FALSE,  # no proporción por columna
-      prop.t    = FALSE,   # proporción sobre total
-      prop.chisq= FALSE    # incluir prueba de chi-cuadrado
-    )
-    
+
+tabla<-CrossTable(
+  datos_sub$cotPension_im,
+  datos_sub$formal, 
+  prop.r    = TRUE,   # proporción por fila
+  prop.c    = FALSE,  # no proporción por columna
+  prop.t    = FALSE,   # proporción sobre total
+  prop.chisq= FALSE    # incluir prueba de chi-cuadrado
+)
+
 # Realizar la prueba chi-cuadrado y capturar los resultados
-chi_test <- chisq.test(table(datos_subt$formal, datos_sub$cotPension_im))
-    
+chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$cotPension_im))
+
 # Imprimir los resultados en la consola
 cat("\nChi-Square Test Results:\n")
 cat(paste("Chi-squared:", chi_test$statistic, "\n"))
 cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
-    
+
 tabla3 <- as.data.frame(tabla$t)
 # Guardar tabla de contingencia en LaTeX
-stargazer(tabla_df, type = "latex", summary = FALSE, out = "tabla_contingencia3.tex",
+stargazer(tabla3, type = "latex", summary = FALSE, out = "tabla_contingencia3.tex",
           title = "Tabla de Contingencia entre Cotiza pension y Formalidad",
           label = "tab:contingencia")    
-    
-    
+
+
 # ------------------------------------ #----
 #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
 # ------------------------------------ #
 
-    
 # Variables numéricas
 numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")    
-    
+
 # Variables categóricas
-categorical_vars <- c("gender", "estrato1", "relab", "formal", "sizeFirm",
-                          "H_Head", "Head_Female", "maxEducLevel_im", 
-                           "cotPension_im")
-    
+categorical_vars <- c("gender", "estrato1",  "sizeFirm", "maxEducLevel_im")
+
 # Etiquetas de las variables
-    
-    
 datos_sub$gender <- factor(datos_sub$gender,
-                               levels = c(0, 1),
-                               labels = c("Mujer", "Hombre"))
-    
-# H_Head: 1=Jefe de hogar, 0=Otro
-datos_sub$H_Head <- factor(datos_sub$H_Head,
-                               levels = c(0, 1),
-                               labels = c("Otro", "Jefe de hogar"))
-    
+                           levels = c(0, 1),
+                           labels = c("Mujer", "Hombre"))
+
 # estrato1: 1=Estrato 1, 2=Estrato 2, 3=Estrato 3, 4=Estrato 4, 5=Estrato 5, 6=Estrato 6
 datos_sub$estrato1 <- factor(datos_sub$estrato1,
-                                 levels = c(1, 2, 3, 4, 5, 6),
-                                 labels = c("Estrato 1", "Estrato 2", "Estrato 3",
-                                            "Estrato 4", "Estrato 5", "Estrato 6"))
-    
+                             levels = c(1, 2, 3, 4, 5, 6),
+                             labels = c("Estrato 1", "Estrato 2", "Estrato 3",
+                                        "Estrato 4", "Estrato 5", "Estrato 6"))
 
-# relab: 1=Obrero..., 2=Obrero..., etc.
-datos_sub$relab <- factor(datos_sub$relab,
-                              levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
-
-    # relab: 1=Obrero..., 2=Obrero..., etc.
-    datos_sub$relab <- factor(datos_sub$relab,
-                              levels = c(1, 2, 3, 4, 5, 6, 7, 8),
-                              labels = c("Obrero/emp. empresa particular",
-                                         "Obrero/emp. gobierno",
-                                         "Empleado doméstico",
-                                         "Trabajador cuenta propia",
-                                         "Patrón o empleador",
-                                         "Trabajador familiar sin remuneración",
-                                         "Trabajador sin remuneracionempresas/negocios de otros hogares",
-                                         "Otro"))
-    
-# formal: 1=formal (seguridad social), 0=otro
-datos_sub$formal <- factor(datos_sub$formal,
-                               levels = c(0, 1),
-                               labels = c("Otro", "Formal (seguridad social)"))
-    
 # sizeFirm: 1= self-employed, 2= 2-5 trabajadores, etc.
 datos_sub$sizeFirm <- factor(datos_sub$sizeFirm,
-                                 levels = c(1, 2, 3, 4, 5),
-                                 labels = c("Self-employed",
-                                            "2-5 trabajadores",
-                                            "6-10 trabajadores",
-                                            "11-50 trabajadores",
-                                            ">50 trabajadores"))
-    
-# Head_Female: 1=Jefe de hogar mujer, 0=Otro
-datos_sub$Head_Female <- factor(datos_sub$Head_Female,
-                                    levels = c(0, 1),
-                                    labels = c("Otro", "Jefe de hogar mujer"))
-    
+                             levels = c(1, 2, 3, 4, 5),
+                             labels = c("Self-employed",
+                                        "2-5 trabajadores",
+                                        "6-10 trabajadores",
+                                        "11-50 trabajadores",
+                                        ">50 trabajadores"))
+
 # maxEducLevel_im: 1=Ninguno, 2=Preescolar, etc.
 datos_sub$maxEducLevel_im <- factor(datos_sub$maxEducLevel_im,
-                                        levels = c(1, 2, 3, 4, 5, 6, 7, 9),
-                                        labels = c("Ninguno",
-                                                   "Preescolar",
-                                                   "Primaria incompleta (1-4)",
-                                                   "Primaria completa (5)",
-                                                   "Secundaria incompleta (6-10)",
-                                                   "Secundaria completa (11)",
-                                                   "Terciario",
-                                                   "N/A"))
-    
-# cotPension_im: 1=cotiza pension, 2=no cotiza, etc.
-datos_sub$cotPension_im <- factor(datos_sub$cotPension_im,
-                                      levels = c(1, 2, 3, 9),
-                                      labels = c("Cotiza pensión",
-                                                 "No cotiza pensión",
-                                                 "Pensionado",
-                                                 "N/A"))
-    
+                                    levels = c(1, 2, 3, 4, 5, 6, 7, 9),
+                                    labels = c("Ninguno",
+                                               "Preescolar",
+                                               "Primaria incompleta (1-4)",
+                                               "Primaria completa (5)",
+                                               "Secundaria incompleta (6-10)",
+                                               "Secundaria completa (11)",
+                                               "Terciario",
+                                               "N/A"))
+
+
 ##grafico edad 
     
 library(ggplot2)
