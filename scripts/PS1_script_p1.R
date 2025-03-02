@@ -525,8 +525,8 @@ variables_seleccionadas <- c("y_ingLab_m_ha_wins", "nmenores", "age",
                              "maxEducLevel_im", "cotPension_im","relab","oficio")
 datos_sub <- datos[, variables_seleccionadas]
 
-datos_sub <- datos_sub %>%
-  mutate(across(all_of(categorical_vars), as.character))
+#datos_sub <- datos_sub %>%
+ # mutate(across(all_of(categorical_vars), as.character))
 
 ## crea un nuevo dataframe con las variables de la firma 
 datos_sub_cat <- datos_sub %>%
@@ -607,7 +607,16 @@ tabla3 <- as.data.frame(tabla$t)
 #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
 # ------------------------------------------ #
 
+# Variables numéricas
+numeric_vars <- c("y_ingLab_m_ha_wins", "nmenores", "age")    
+
+# Variables categóricas
+categorical_vars <- c("gender", "estrato1", "sizeFirm",
+                      "maxEducLevel_im", "oficio")
+
 ###Generamos la tabla descriptiva del informe 
+datos_sub <- datos_sub %>%
+ mutate(across(all_of(categorical_vars), as.character))
 
 # estadísticas de cada variable numérica
 numeric_summary <- datos_sub %>%
@@ -615,21 +624,20 @@ numeric_summary <- datos_sub %>%
   pivot_longer(cols = everything(), 
                names_to = "Variable", 
                values_to = "Valor") %>% 
-  
-  #etiquetas de las variables 
-  mutate(Variable = dplyr::recode(Variable,
+            #etiquetas de las variables 
+            mutate(Variable = dplyr::recode(Variable,
                                   "age" = "Edad (años)",
                                   "nmenores" = "Número de menores",
                                   "y_ingLab_m_ha_wins" = "Salario por Hora(todas las ocupaciones)"
-  )) %>%
-  group_by(Variable) %>% 
-  summarise(
-    n      = n(),
-    Mean   = mean(Valor, na.rm = TRUE),
-    SD     = sd(Valor, na.rm = TRUE),
-    Min    = min(Valor, na.rm = TRUE),
-    Median = median(Valor, na.rm = TRUE),
-    Max    = max(Valor, na.rm = TRUE),
+        )) %>%
+        group_by(Variable) %>% 
+        summarise(
+        n      = n(),
+        Mean   = mean(Valor, na.rm = TRUE),
+        SD     = sd(Valor, na.rm = TRUE),
+        Min    = min(Valor, na.rm = TRUE),
+        Median = median(Valor, na.rm = TRUE),
+        Max    = max(Valor, na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -639,7 +647,7 @@ numeric_summary %>%
   kable(format = "pandoc")
 
 
-var_order <- c("gender", "maxEducLevel_im", "estrato1", "sizeFirm")
+var_order <- c("gender", "maxEducLevel_im", "estrato1", "sizeFirm", "oficio")
 
 # resumen con Frecuencia y %
 
