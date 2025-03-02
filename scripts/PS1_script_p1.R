@@ -545,7 +545,6 @@ tabla<-CrossTable(
   prop.chisq= FALSE    # incluir prueba de chi-cuadrado
 )
 
-
 # Realizar la prueba chi-cuadrado y capturar los resultados
 chi_test <- chisq.test(table(datos_sub_cat$formal, datos_sub_cat$sizeFirm))
 
@@ -555,11 +554,8 @@ cat(paste("Chi-squared:", chi_test$statistic, "\n"))
 cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
 
-tabla1 <- as.data.frame(tabla$t)
-# Guardar tabla de contingencia en LaTeX
-stargazer(tabla1, type = "latex", summary = FALSE, out = "tabla_contingencia1.tex",
-          title = "Tabla de Contingencia entre Tamaño de Firma y Formalidad",
-          label = "tab:contingencia")
+tabla1 <- as.data.frame(tabla)
+
 
 ### relab vs. formal           
 
@@ -582,10 +578,7 @@ cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
 
 tabla2 <- as.data.frame(tabla$t)
-# Guardar tabla de contingencia en LaTeX
-stargazer(tabla2, type = "latex", summary = FALSE, out = "tabla_contingencia2.tex",
-          title = "Tabla de Contingencia entre Tipo de ocupacion y Formalidad",
-          label = "tab:contingencia")
+
 
 ### formal vs. cotPension_im          
 
@@ -608,11 +601,7 @@ cat(paste("Degrees of freedom:", chi_test$parameter, "\n"))
 cat(paste("P-value:", chi_test$p.value, "\n"))
 
 tabla3 <- as.data.frame(tabla$t)
-# Guardar tabla de contingencia en LaTeX
-stargazer(tabla3, type = "latex", summary = FALSE, out = "tabla_contingencia3.tex",
-          title = "Tabla de Contingencia entre Cotiza pension y Formalidad",
-          label = "tab:contingencia")    
-
+ 
 
 # ------------------------------------ #----
 #ANALISIS DESCRIPTIVO DE LOS DATOS-INFORME
