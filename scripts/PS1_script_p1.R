@@ -269,18 +269,18 @@ datos <- datos %>%
 ###################
 ###y_ingLab_m_ha
 ###################
-<<<<<<< HEAD
+
 # Numero de missing de la variable 
 is.na(datos$y_ingLab_m_ha) %>% table()
     
 #distribucion de la variable ingreso 
-=======
+
     
 # Numero de missing de la variable 
     is.na(datos$y_ingLab_m_ha) %>% table()
     
     #distribución de la variable ingreso 
->>>>>>> 88cdc61428c4be57e098a2398142b0fa8e16d42b
+
     
 ggplot(datos, aes(y_ingLab_m_ha)) +
       geom_histogram(color = "#000000", fill = "#0099F8") +
@@ -312,7 +312,7 @@ ggplot(datos, aes(y_ingLab_m_ha_im)) +
     
 summary(datos[, c("y_ingLab_m_ha_im", "y_ingLab_m_ha")])
     
-<<<<<<< HEAD
+
 
 #########################################################
 ###manejo de outliers 
@@ -328,7 +328,7 @@ library(gridExtra)
 # Definimos los umbrales para marcar outliers (1% y 99%)
 p_inferior <- 0.01
 p_superior <- 0.99
-=======
+
     # No obstante, creamos otra variable con el uso de media como reemplazo de NA
     datos <- datos  %>%
       mutate(y_ingLab_m_ha_mean = ifelse(is.na(y_ingLab_m_ha) == TRUE, mean(datos$y_ingLab_m_ha, na.rm = TRUE) , y_ingLab_m_ha))
@@ -348,19 +348,18 @@ p_superior <- 0.99
     #########################################################
     ###manejo de outliers 
     #########################################################
->>>>>>> 88cdc61428c4be57e098a2398142b0fa8e16d42b
+
     
 umbral_inferior <- quantile(datos$y_ingLab_m_ha_im, probs = p_inferior, na.rm = TRUE)
 umbral_superior <- quantile(datos$y_ingLab_m_ha_im, probs = p_superior, na.rm = TRUE)
     
-<<<<<<< HEAD
+
 # Filtrar registros que están por debajo o por encima de dichos umbrales
 extremos <- datos %>%
     filter(y_ingLab_m_ha_im < umbral_inferior | y_ingLab_m_ha_im > umbral_superior)
-=======
+
     # Exploración inicial de la variable de ingreso
 
->>>>>>> 88cdc61428c4be57e098a2398142b0fa8e16d42b
     
 n_extremos <- nrow(extremos)
 cat("Número de registros outliers (1% - 99%):", n_extremos, "\n")
@@ -661,15 +660,14 @@ datos_sub$estrato1 <- factor(datos_sub$estrato1,
                                  labels = c("Estrato 1", "Estrato 2", "Estrato 3",
                                             "Estrato 4", "Estrato 5", "Estrato 6"))
     
-<<<<<<< HEAD
+
 # relab: 1=Obrero..., 2=Obrero..., etc.
 datos_sub$relab <- factor(datos_sub$relab,
                               levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
-=======
+
     # relab: 1=Obrero..., 2=Obrero..., etc.
     datos_sub$relab <- factor(datos_sub$relab,
                               levels = c(1, 2, 3, 4, 5, 6, 7, 8),
->>>>>>> 88cdc61428c4be57e098a2398142b0fa8e16d42b
                               labels = c("Obrero/emp. empresa particular",
                                          "Obrero/emp. gobierno",
                                          "Empleado doméstico",
@@ -957,7 +955,7 @@ select_at(categorical_vars) %>%
      caption = "Resumen de Variables Categóricas (con Etiquetas y %)") %>%
      kable_styling(latex_options = c("striped", "hold_position"))
     
-<<<<<<< HEAD
+
 
 
  ##Resumen de Estadisticas descriptivas variables modelo   
@@ -987,13 +985,14 @@ datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
 
 
 # Revisión rápida de los datos
+
 skim(datos1)
 skim(datos2)
 
 ## TRABAJAR CON DATOS SUB
 
-=======
->>>>>>> 88cdc61428c4be57e098a2398142b0fa8e16d42b
+
+
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 3 ------------------------- ##
 # ------------------------------------------------------------- #
