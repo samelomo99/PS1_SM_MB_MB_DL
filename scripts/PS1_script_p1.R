@@ -340,9 +340,6 @@ umbral_superior <- quantile(datos$y_ingLab_m_ha_im, probs = p_superior, na.rm = 
 # Filtrar registros que están por debajo o por encima de dichos umbrales
 extremos <- datos %>%
     filter(y_ingLab_m_ha_im < umbral_inferior | y_ingLab_m_ha_im > umbral_superior)
-
-    # Exploración inicial de la variable de ingreso
-
     
 n_extremos <- nrow(extremos)
 cat("Número de registros outliers (1% - 99%):", n_extremos, "\n")
@@ -462,8 +459,8 @@ datos <- datos %>%
 summary(datos$y_ingLab_m_ha_im)
 summary(datos$y_ingLab_m_ha_wins)
     
-#visualizando el boxplot de nuestra variable de resulatado: ingreso windzorizada 
-ggplot(datos_sub, aes(x = y_ingLab_m_ha_wins)) +
+#visualizando el boxplot de nuestra variable de resultado: ingreso windzorizada 
+ggplot(datos, aes(x = y_ingLab_m_ha_wins)) +
     geom_histogram(aes(y = ..density..),
                    bins = 30,
                    fill = "skyblue",
@@ -477,11 +474,11 @@ ggplot(datos_sub, aes(x = y_ingLab_m_ha_wins)) +
       scale_x_continuous(trans = "log10")  # Escala logarítmica en eje x, opcional
     
 ##bloxplot ingreso 
-umbral_inferior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.01, na.rm = TRUE)
-umbral_superior <- quantile(datos_sub$y_ingLab_m_ha_wins, probs = 0.99, na.rm = TRUE)
+umbral_inferior <- quantile(datos$y_ingLab_m_ha_wins, probs = 0.01, na.rm = TRUE)
+umbral_superior <- quantile(datos$y_ingLab_m_ha_wins, probs = 0.99, na.rm = TRUE)
     
 # escala original (percentiles 1% y 99%)
-e <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
+e <- ggplot(datos, aes(x = "", y = y_ingLab_m_ha_wins)) +
       geom_boxplot() +
       theme_bw() +
       ggtitle("y_ingLab_m_ha_wins Escala original): 
@@ -495,7 +492,7 @@ e <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
     
 # Boxplot en escala logarítmica (percentiles 1% y 99%)
     
-e_log <- ggplot(datos_sub, aes(x = "", y = y_ingLab_m_ha_wins)) +
+e_log <- ggplot(datos, aes(x = "", y = y_ingLab_m_ha_wins)) +
     geom_boxplot() +
     scale_y_log10() +  # <-- Escala logarítmica para manejar asimetrías
     theme_bw() +
