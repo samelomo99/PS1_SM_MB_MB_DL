@@ -1216,6 +1216,10 @@ modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_i
 modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + sizeFirm, data = train) # controles secundarios
 modelo8 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + I(maxEducLevel_im^2) + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm, data = train) # interacción y forma polinomial 
 
+stargazer(modelo1, modelo2, modelo3, modelo4, modelo5, modelo6, modelo7)
+stargazer(modelo8)
+
+
 # Performance (fuera de muestra)
 predictions <- list(
   pred1 = predict(modelo1, test),
