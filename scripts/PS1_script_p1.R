@@ -910,7 +910,7 @@ print(c(MSE_p3_mean = mean((datos1$log_s2 - log_s_hat_mean)^2), MSE_p3_median = 
 ## Gráfica - Punto más alto de ingreso estimado según edad
 ggplot(datos2, aes(x = age, y = log_s_hat_median)) +
   geom_point(color = "blue", alpha = 0.6) +  # Puntos en azul con transparencia
-  geom_vline(xintercept = 50, color = "red", linetype = "dashed", size = 1) +  # Línea vertical roja en x = 50
+  geom_vline(xintercept = 45, color = "red", linetype = "dashed", size = 1) +  # Línea vertical roja en x = 50
   # geom_smooth(method = "lm", color = "red", se = TRUE) +  # Línea de tendencia opcional
   labs(title = "Relación entre Edad y el Logaritmo de los Ingresos",
        x = "Edad",
