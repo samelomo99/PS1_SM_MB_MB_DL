@@ -907,6 +907,15 @@ modelo_p3_median$coefficients
 log_s_hat_mean  <- predict(modelo_p3_mean, newdata = datos1)
 log_s_hat_median <- predict(modelo_p3_median, newdata = datos2)
 print(c(MSE_p3_mean = mean((datos1$log_s2 - log_s_hat_mean)^2), MSE_p3_median = mean((datos2$log_s2 - log_s_hat_median)^2)))
+
+#AIC 
+AIC(modelo_p3_mean)
+AIC(modelo_p3_median)
+
+#BIC
+BIC(modelo_p3_mean)
+BIC(modelo_p3_median)
+
 # Nos quedamos con la mediana
 
 ## Gráfica - Punto más alto de ingreso estimado según edad
@@ -951,7 +960,7 @@ ggplot(data.frame(edad_max_boot_p3_s), aes(x = edad_max_boot_p3_s)) +
   geom_vline(aes(xintercept = mean(edad_max_boot_p3_s)), color = "red", linetype = "dashed", linewidth = 1) +  # Media
   geom_vline(aes(xintercept = CF_S[1]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite inferior IC
   geom_vline(aes(xintercept = CF_S[2]), color = "black", linetype = "dotted", linewidth = 1.2) +  # Límite superior IC
-  labs(title = "Distribución Bootstrap de la Edad con Ingresos Máximos",
+  labs(
        x = "Edad máxima estimada",
        y = "Densidad") +
   theme_minimal()
@@ -1075,7 +1084,7 @@ set.seed(10101)
 boot_p4_f <- boot(data = datos2, peak_age_female, R = 1000)
 boot_p4_f
 
-boot.ci(boot_p4_f, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+boot.ci(boot_p4_f, type = c("perc","bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
 CF_female <- boot.ci(boot_p4_f, type = "perc")$percent[4:5] #Esto me saca el percentil
 edad_max_female <- boot_p4_f$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
