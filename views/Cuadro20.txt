@@ -1,0 +1,21 @@
+\begin{table}[H]
+    \centering
+    \caption{Distribución de datos por cotización a pensión y formalidad}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Cotización a Pensión} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
+        \midrule
+        1 & 69 & 9.385 & 9.454 \\
+          & (0,007) & (0,993) & (0,580) \\
+        \midrule
+        2 & 6.540 & 0 & 6.540 \\
+          & (1,000) & (0,000) & (0,401) \\
+        \midrule
+        3 & 1 & 299 & 300 \\
+          & (0,003) & (0,997) & (0,018) \\
+        \midrule
+        \textbf{Total Columnas} & \textbf{6.610} & \textbf{9.684} & \textbf{16.294} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:cotPension_formal}
+\end{table}

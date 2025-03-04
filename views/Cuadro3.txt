@@ -1,0 +1,18 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc} 
+        \toprule
+        & \textbf{y\_ingLab\_m\_ha\_im (Variable imputada)} & \textbf{y\_ingLab\_m\_ha (Variable original)} \\
+        \midrule
+        Min.   & 326,7   & 326,7   \\ 
+        1st Qu. & 4.666,7  & 4.226,5  \\ 
+        Median  & 5.055,6  & 5.055,6  \\ 
+        Mean    & 7.342,3  & 8.822,2  \\ 
+        3rd Qu. & 5.718,8  & 8.049,5  \\ 
+        Max.    & 350.583,3 & 350.583,3 \\ 
+        NA's    & -        & 6.402     \\ 
+        \bottomrule
+    \end{tabular}
+    \caption{Resumen estadístico de la variable de ingreso laboral con y sin imputación}
+    \label{tab:resumen_ingresos}
+\end{table}

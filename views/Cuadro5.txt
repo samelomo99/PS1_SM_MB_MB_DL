@@ -1,0 +1,16 @@
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        \textbf{Variable} & \textbf{Media} & \textbf{Desv. Est.} & \textbf{Mín.} & \textbf{Mediana} & \textbf{Máx.} \\
+        \midrule
+        Edad (años) & 39,37 & 13,41 & 18 & 38,00 & 94,0 \\
+        Número de menores & 0,30 & 0,57 & 0 & 0,00 & 4,0 \\
+        Salario por hora (todas las ocupaciones) & 7.383,37 & 10.187,09 & 3.000 & 5.055,56 & 350.583,3 \\
+        \midrule
+        \textbf{Número de observaciones} & \multicolumn{5}{c}{16.294} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Estadísticas descriptivas de variables seleccionadas}
+    \label{tab:descriptivas}
+\end{table}
