@@ -384,6 +384,7 @@ b <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
 mean_val <- mean(datos$y_ingLab_m_ha_im, na.rm = TRUE)
 sd_val   <- sd(datos$y_ingLab_m_ha_im, na.rm = TRUE)
 low_2sd  <- mean_val - 2 * sd_val
+
 up_2sd   <- mean_val + 2 * sd_val
     
 c <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
@@ -397,6 +398,7 @@ c <- ggplot(data = datos, aes(x = "", y = y_ingLab_m_ha_im)) +
     
 grid.arrange(b, c, ncol = 2)
     
+
 # Marcar outliers en la base de datos (según media ± 2*sd, por ejemplo)
 datos <- datos %>% 
 mutate(out_y_ingLab_m_ha_im = ifelse(y_ingLab_m_ha_im < low_2sd | y_ingLab_m_ha_im > up_2sd, 1, 0))
@@ -960,7 +962,7 @@ ggplot(data.frame(edad_max_boot_p3_s), aes(x = edad_max_boot_p3_s)) +
 ## ------------------------- PUNTO 4 ------------------------- ##
 # ------------------------------------------------------------- #
 
-## Hacemos la regresion
+#### Brecha salarial incondicional
 
 datos2 <- datos2 %>%
   mutate(female = ifelse(gender == 0, 1, 0))
@@ -969,19 +971,41 @@ reg_p4 <- log_s2~female
 modelo_p4_1 <- lm(log_s2~female, data=datos2)
 
 stargazer(modelo_p4_1, type = "text", title = "Logaritmo del salario en funcion del genero")
+stargazer(modelo_p4_1, type = "latex", title = "Logaritmo del salario en funcion del genero")
+
+
+#### Brecha salarial condicional
+
+reg_p4_1 <- lm(log_s2 ~ female+age+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
+reg_p4_2 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
+reg_p4_3 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos2)
+reg_p4_4 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab, data = datos2)
+reg_p4_5 <- lm(log_s2 ~ female+age+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1, data = datos2)
+
+mse <- c(MSE_p4_1 = mean((datos2$log_s2 - predict(reg_p4_1))^2),MSE_p4_2 = mean((datos2$log_s2 - predict(reg_p4_2))^2),
+         MSE_p4_3 = mean((datos2$log_s2 - predict(reg_p4_3))^2),MSE_p4_4 = mean((datos2$log_s2 - predict(reg_p4_4))^2),
+         MSE_p4_5 = mean((datos2$log_s2 - predict(reg_p4_5))^2))
+print(mse)
+
+
+# El modelo a estimar es:
+
+reg_p4_condicional <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos2)
+stargazer(reg_p4_condicional, type = "text", title = "Logaritmo del salario en funcion del genero")
+summary(reg_p4_condicional)
+
 
 ## Teorema FWL
 
 # x1 es la variable female
 # x2 son los controles que corresponden a: edad y estrato
 
-reg_p4_controles <- lm(log_s2 ~ female+age+estrato1, data = datos2)
-stargazer(reg_p4_controles, type = "text", title = "Logaritmo del salario en funcion del genero")
+# Estimamos la regresiones auxiliares
 
 
-regaux_p4_x1 <- lm(female~age+estrato1, data=datos2) # Regresion de x2 sobre x1
+regaux_p4_x1 <- lm(female~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2) # Regresion de x2 sobre x1
 
-regaux_p4_y <- lm(log_s2~age+estrato1, data=datos2) # Regresion de x2 sobre y
+regaux_p4_y <- lm(log_s2~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2) # Regresion de x2 sobre y
 
 # Despues de purgar x2 de x1 y de y, se corre la regresion
 
@@ -993,7 +1017,7 @@ y_resid
 
 reg_p4_fwl <- y_resid~x1_resid
 modelo_p4_fwl <- lm(reg_p4_fwl, data=datos2)
-stargazer(reg_p4_controles, modelo_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
+stargazer(reg_p4_condicional, modelo_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
 
 
 # Teorema FWL con bootstrap
@@ -1068,6 +1092,7 @@ graph_female <- ggplot(data.frame(edad_max_female), aes(x = edad_max_female)) +
        y = "Densidad") +
   theme_minimal()
 
+print(graph_female)
 
 ## ----
 
@@ -1160,6 +1185,7 @@ graph_male <- ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
     )
   )
 
+ 
 
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 5 ------------------------- ##
@@ -1207,7 +1233,7 @@ ggplot(split_data, aes(x = Split, y = Count)) +
 # MODELOS ANTERIORES
 modelo1 <- lm(reg_p3, data = train)
 modelo2 <- lm(reg_p4, data = train)
-modelo3 <- lm(reg_p4_controles, data = train)
+modelo3 <- lm(reg_p4_condicional, data = train)
 
 # MODELOS ADICIONALES
 modelo4 <- lm(log_s2 ~ age + I(age^2) + female, data = train)
