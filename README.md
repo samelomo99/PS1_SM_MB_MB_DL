@@ -26,7 +26,7 @@ Contiene la base de datos construida a partir del *scraping* de la GEIH.
 Almacena los cuadros y gráficas en orden según su aparición en el documento principal.  
 
 - **Gráficas**: Se encuentran en formatos JPG y PDF, lo que permite su inclusión en Overleaf sin inconvenientes.  
-- **Cuadros**: Guardados en formato *text*, compatible con Overleaf. Los cuadros a partir del número 18 corresponden a la sección de Anexos.  
+- **Cuadros**: Guardados en formato *text*, compatible con Overleaf. Los cuadros a partir del número 19 corresponden a la sección de Anexos.  
 
 ---
 
