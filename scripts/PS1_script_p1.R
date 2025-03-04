@@ -979,15 +979,15 @@ y_resid
 
 reg_p4_fwl <- y_resid~x1_resid
 modelo_p4_fwl <- lm(reg_p4_fwl, data=datos2)
-stargazer(reg_p4_condicional, modelo_p4_fwl, type = "text", title = "Logaritmo del salario en funcion del genero")
+stargazer(reg_p4_condicional, modelo_p4_fwl, type = "latex", title = "Logaritmo del salario en funcion del genero")
 
 
 # Teorema FWL con bootstrap
 
 fwl_function<-function(datos2,index){
   
-  regaux_p4_x1 <- lm(female~age+estrato1, data=datos2, subset=index) # Regresion de x2 sobre x1
-  regaux_p4_y <- lm(log_s2~age+estrato1, data=datos2, subset=index)
+  regaux_p4_x1 <- lm(female~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2, subset=index) # Regresion de x2 sobre x1
+  regaux_p4_y <- lm(log_s2~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2, subset=index)
   
   
   x1_resid <- regaux_p4_x1$residuals
@@ -1006,11 +1006,16 @@ fwl_function(datos2,1:nrow(datos2))  #Probando la funcion
 
 ##Finalmente hacemos la simulación
 set.seed(10101)
-boot_p4_ha <- boot(data = datos2, fwl_function, R = 1000)
-boot_p4_ha
 
+
+
+
+boot_p4_ha <- boot(data = datos2, statistic = fwl_function, R = 1000)
 boot.ci(boot_p4_ha, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
+
+
+  
 ## ----------
 
 peak_age_female <-function(datos2,index){
