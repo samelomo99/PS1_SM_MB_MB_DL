@@ -944,7 +944,7 @@ stargazer(modelo_p4_1, type = "text", title = "Logaritmo del salario en funcion 
 
 reg_p4_1 <- lm(log_s2 ~ female+age+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
 reg_p4_2 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
-reg_p4_3 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos2)
+reg_p4_3 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+estrato1+nmenores, data = datos2)
 reg_p4_4 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab, data = datos2)
 reg_p4_5 <- lm(log_s2 ~ female+age+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1, data = datos2)
 
