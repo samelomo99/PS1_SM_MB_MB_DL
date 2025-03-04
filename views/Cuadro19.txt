@@ -1,33 +1,27 @@
-\begin{table}[H]
+\begin{table}[h]
     \centering
-    \caption{Distribución de datos por pensión y formalidad}
+    \caption{Distribución de datos por tamaño de empresa y formalidad}
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Pensión} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
+        \textbf{Tamaño Firma} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
         \midrule
-        1 & 2.087 & 7.255 & 9.342 \\
-          & (0,223) & (0,777) & (0,573) \\
+        1 & 3.192 & 848 & 4.040 \\
+          & (0,790) & (0,210) & (0,248) \\
         \midrule
-        2 & 0 & 632 & 632 \\
-          & (0,000) & (1,000) & (0,039) \\
+        2 & 2.269 & 864 & 3.133 \\
+          & (0,724) & (0,276) & (0,192) \\
         \midrule
-        3 & 353 & 225 & 578 \\
-          & (0,611) & (0,389) & (0,035) \\
+        3 & 510 & 614 & 1.124 \\
+          & (0,454) & (0,546) & (0,069) \\
         \midrule
-        4 & 3.776 & 1.330 & 5.106 \\
-          & (0,740) & (0,260) & (0,313) \\
+        4 & 375 & 1.673 & 2.048 \\
+          & (0,183) & (0,817) & (0,126) \\
         \midrule
-        5 & 385 & 241 & 626 \\
-          & (0,615) & (0,385) & (0,038) \\
-        \midrule
-        8 & 1 & 0 & 1 \\
-          & (1,000) & (0,000) & (0,000) \\
-        \midrule
-        9 & 8 & 1 & 9 \\
-          & (0,889) & (0,111) & (0,001) \\
+        5 & 264 & 5.685 & 5.949 \\
+          & (0,044) & (0,956) & (0,365) \\
         \midrule
         \textbf{Total Columnas} & \textbf{6.610} & \textbf{9.684} & \textbf{16.294} \\
         \bottomrule
     \end{tabular}
-    \label{tab:distribucion_pension}
+    \label{tab:distribucion}
 \end{table}

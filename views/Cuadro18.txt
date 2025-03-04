@@ -1,27 +1,13 @@
-\begin{table}[h]
-    \centering
-    \caption{Distribución de datos por tamaño de empresa y formalidad}
-    \begin{tabular}{lccc}
-        \toprule
-        \textbf{Tamaño Firma} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
-        \midrule
-        1 & 3.192 & 848 & 4.040 \\
-          & (0,790) & (0,210) & (0,248) \\
-        \midrule
-        2 & 2.269 & 864 & 3.133 \\
-          & (0,724) & (0,276) & (0,192) \\
-        \midrule
-        3 & 510 & 614 & 1.124 \\
-          & (0,454) & (0,546) & (0,069) \\
-        \midrule
-        4 & 375 & 1.673 & 2.048 \\
-          & (0,183) & (0,817) & (0,126) \\
-        \midrule
-        5 & 264 & 5.685 & 5.949 \\
-          & (0,044) & (0,956) & (0,365) \\
-        \midrule
-        \textbf{Total Columnas} & \textbf{6.610} & \textbf{9.684} & \textbf{16.294} \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:distribucion}
-\end{table}
+\begin{table}[H] \centering
+  \caption{Comparación de errores de predicción}
+  \label{tab:comparacion_prediccion}
+\begin{tabular}{@{\extracolsep{5pt}}lcc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & RMSE (Validation Set) & RMSE (LOOCV) \\ 
+\hline \\[-1.8ex] 
+Modelo 7 & 0.44202 & 0.45027 \\ 
+\textbf{Modelo 8} & \textbf{0.44002} & \textbf{0.44772} \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 

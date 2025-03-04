@@ -1,21 +1,33 @@
 \begin{table}[H]
     \centering
-    \caption{Distribución de datos por cotización a pensión y formalidad}
+    \caption{Distribución de datos por pensión y formalidad}
     \begin{tabular}{lccc}
         \toprule
-        \textbf{Cotización a Pensión} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
+        \textbf{Pensión} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
         \midrule
-        1 & 69 & 9.385 & 9.454 \\
-          & (0,007) & (0,993) & (0,580) \\
+        1 & 2.087 & 7.255 & 9.342 \\
+          & (0,223) & (0,777) & (0,573) \\
         \midrule
-        2 & 6.540 & 0 & 6.540 \\
-          & (1,000) & (0,000) & (0,401) \\
+        2 & 0 & 632 & 632 \\
+          & (0,000) & (1,000) & (0,039) \\
         \midrule
-        3 & 1 & 299 & 300 \\
-          & (0,003) & (0,997) & (0,018) \\
+        3 & 353 & 225 & 578 \\
+          & (0,611) & (0,389) & (0,035) \\
+        \midrule
+        4 & 3.776 & 1.330 & 5.106 \\
+          & (0,740) & (0,260) & (0,313) \\
+        \midrule
+        5 & 385 & 241 & 626 \\
+          & (0,615) & (0,385) & (0,038) \\
+        \midrule
+        8 & 1 & 0 & 1 \\
+          & (1,000) & (0,000) & (0,000) \\
+        \midrule
+        9 & 8 & 1 & 9 \\
+          & (0,889) & (0,111) & (0,001) \\
         \midrule
         \textbf{Total Columnas} & \textbf{6.610} & \textbf{9.684} & \textbf{16.294} \\
         \bottomrule
     \end{tabular}
-    \label{tab:cotPension_formal}
+    \label{tab:distribucion_pension}
 \end{table}

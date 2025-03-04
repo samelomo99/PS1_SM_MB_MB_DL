@@ -1,13 +1,18 @@
 \begin{table}[H] \centering
-  \caption{Comparación de errores de predicción}
-  \label{tab:comparacion_prediccion}
-\begin{tabular}{@{\extracolsep{5pt}}lcc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & RMSE (Validation Set) & RMSE (LOOCV) \\ 
-\hline \\[-1.8ex] 
-Modelo 7 & 0.44202 & 0.45027 \\ 
-\textbf{Modelo 8} & \textbf{0.44002} & \textbf{0.44772} \\ 
-\hline \\[-1.8ex] 
+  \caption{Desempeño de predicción}
+  \label{tab:rmse_models}
+\begin{tabular}{lc} 
+\hline \hline \\[-1.8ex]
+Modelo & RMSE \\ 
+\hline \\[-1.8ex]
+Modelo 1 & 0.52646 \\ 
+Modelo 2 & 0.53283 \\ 
+Modelo 3 & 0.45216 \\ 
+Modelo 4 & 0.52645 \\ 
+Modelo 5 & 0.52627 \\ 
+Modelo 6 & 0.46576 \\ 
+Modelo 7 & 0.44202 \\ 
+\textbf{Modelo 8} & \textbf{0.44002} \\ 
+\hline \hline
 \end{tabular} 
-\end{table} 
+\end{table}

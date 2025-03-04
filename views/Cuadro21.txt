@@ -1,41 +1,21 @@
-\begin{longtable}{lp{10cm}rr}
-    \caption{Distribuci\'on de ocupaciones} \\
-    \toprule
-    \textbf{Variable} & \textbf{Descripci\'on} & \textbf{Frecuencia} & \textbf{Porcentaje} \\
-    \midrule
-    \endfirsthead
-
-    \toprule
-    \textbf{Variable} & \textbf{Descripci\'on} & \textbf{Frecuencia} & \textbf{Porcentaje} \\
-    \midrule
-    \endhead
-
-    \midrule
-    \multicolumn{4}{r}{\textit{Contin\'ua en la siguiente p\'agina}} \\
-    \midrule
-    \endfoot
-
-    \bottomrule
-    \endlastfoot
-
-    Oficio & Vendedores (ambulantes, a domicilio, entre otros) & 1.652 & 10.10\% \\
-    Oficio & Almacenistas, auxiliares administrativos y similares & 945 & 5.80\% \\
-    Oficio & Conductores de transporte & 831 & 5.10\% \\
-    Oficio & Empleadas dom\'esticas y niñeras & 771 & 4.70\% \\
-    Oficio & Directores y gerentes & 689 & 4.20\% \\
-    Oficio & Cocineros, camareros y meseros & 682 & 4.20\% \\
-    Oficio & Comerciantes y propietarios & 661 & 4.10\% \\
-    Oficio & Seguridad (polic\'ias, vigilantes, entre otros) & 655 & 4.00\% \\
-    Oficio & Alba\'niles, carpinteros y similares & 621 & 3.80\% \\
-    Oficio & Guardianes y porteros & 607 & 3.70\% \\
-    Oficio & Docentes & 532 & 3.30\% \\
-    Oficio & T\'ecnicos en ingenier\'ia y top\'ografos & 506 & 3.10\% \\
-    Oficio & Sastres, modistas y similares & 501 & 3.10\% \\
-    Oficio & Auxiliares contables y cajeros & 481 & 3.00\% \\
-    Oficio & Estibadores y operarios de maquinaria & 465 & 2.90\% \\
-    Oficio & Gu\'ias de turismo, auxiliares de farmacia y afines & 400 & 2.50\% \\
-    Oficio & Ingenieros y arquitectos & 319 & 2.00\% \\
-    Oficio & Otros & 4.878 & 29.80\% \\
-    \textbf{Total} & & \textbf{16.294} & \textbf{100\%}
-    
-\end{longtable}
+\begin{table}[H]
+    \centering
+    \caption{Distribución de datos por cotización a pensión y formalidad}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Cotización a Pensión} & \textbf{0 (No Formal)} & \textbf{1 (Formal)} & \textbf{Total Filas} \\
+        \midrule
+        1 & 69 & 9.385 & 9.454 \\
+          & (0,007) & (0,993) & (0,580) \\
+        \midrule
+        2 & 6.540 & 0 & 6.540 \\
+          & (1,000) & (0,000) & (0,401) \\
+        \midrule
+        3 & 1 & 299 & 300 \\
+          & (0,003) & (0,997) & (0,018) \\
+        \midrule
+        \textbf{Total Columnas} & \textbf{6.610} & \textbf{9.684} & \textbf{16.294} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:cotPension_formal}
+\end{table}
