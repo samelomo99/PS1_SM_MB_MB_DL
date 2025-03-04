@@ -6,8 +6,8 @@
 \hline \\[-1.8ex] 
  & RMSE (Validation Set) & RMSE (LOOCV) \\ 
 \hline \\[-1.8ex] 
-Modelo 7 & 0.44202 & 0.45027 \\ 
-\textbf{Modelo 8} & \textbf{0.44002} & \textbf{0.44772} \\ 
+Modelo 7 & 0,44202 & 0,45027 \\ 
+\textbf{Modelo 8} & \textbf{0,44002} & \textbf{0,44772} \\ 
 \hline \\[-1.8ex] 
 \end{tabular} 
 \end{table} 
