@@ -48,7 +48,7 @@ Los resultados indican que la **inclusión progresiva de variables explicativas 
 
 ---
 
-📌 **Este repositorio proporciona una base sólida para el análisis de predicción de ingresos, aplicando técnicas avanzadas de modelado y evaluación de desempeño.**  
+📌 **Este repositorio corresponde a un ejercicio de análisis y predicción de ingresos, aplicando técnicas aprendidas durante la clase de Big Data y Machine Learning de la Universidad de los Andes.**  
 
 
 
