@@ -994,24 +994,15 @@ stargazer(reg_p4_condicional, modelo_p4_fwl, type = "text", title = "Logaritmo d
 # Teorema FWL con bootstrap
 
 fwl_function<-function(datos2,index){
-  
-  regaux_p4_x1 <- lm(female~age+estrato1, data=datos2, subset=index) # Regresion de x2 sobre x1
-  regaux_p4_y <- lm(log_s2~age+estrato1, data=datos2, subset=index)
-  
-  
+  regaux_p4_x1 <- lm(female~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2, subset=index) # Regresion de x2 sobre x1
+  regaux_p4_y <- lm(log_s2~age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data=datos2, subset=index)
   x1_resid <- regaux_p4_x1$residuals
-  
   y_resid <- regaux_p4_y$residuals
-  
-  
   reg_p4_fwl <- lm(y_resid~x1_resid, data=datos2)
-  
-  beta_female <- reg_p4_fwl$coefficients[2]  
-  
+  beta_female <- reg_p4_fwl$coefficients[2]
   return(beta_female)
 }
-
-fwl_function(datos2,1:nrow(datos2))  #Probando la funcion 
+fwl_function(datos2,1:nrow(datos2))  #Probando la funcion
 
 ##Finalmente hacemos la simulación
 set.seed(10101)
@@ -1027,9 +1018,9 @@ peak_age_female <-function(datos2,index){
   datos_muestra <- datos2[index, ]  # Tomar solo las filas seleccionadas por bootstrap
   datos_female <- datos_muestra[datos_muestra$female == 1, ]  # Filtrar solo mujeres
   
-  log_salario <- log(datos_female$y_ingLab_m_ha)
+  log_salario <- log(datos_female$y_ingLab_m_ha_wins)
   
-  reg_p4_peak_female <- lm(log_salario ~ age + I(age^2), data = datos_female)
+  reg_p4_peak_female <- lm(log_salario ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos2)
   
   
   b2_f <- coef(reg_p4_peak_female)[2]
@@ -1072,9 +1063,9 @@ peak_age_male <-function(datos2,index){
   datos_muestra <- datos2[index, ]  # Tomar solo las filas seleccionadas por bootstrap
   datos_male <- datos_muestra[datos_muestra$female == 0, ]  # Filtrar solo mujeres
   
-  log_salario <- log(datos_male$y_ingLab_m_ha)
+  log_salario <- log(datos_male$y_ingLab_m_ha_wins)
   
-  reg_p4_peak_male <- lm(log_salario ~ age + I(age^2), data = datos_male)
+  reg_p4_peak_male <- lm(log_salario ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos_male)
   
   
   b2_m <- coef(reg_p4_peak_male)[2]
