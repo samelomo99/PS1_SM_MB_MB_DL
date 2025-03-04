@@ -953,7 +953,7 @@ stargazer(modelo_p4_1, type = "text", title = "Logaritmo del salario en funcion 
 
 reg_p4_1 <- lm(log_s2 ~ female+age+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
 reg_p4_2 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+oficio+relab+estrato1, data = datos2)
-reg_p4_3 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+estrato1+nmenores, data = datos2)
+reg_p4_3 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos2)
 reg_p4_4 <- lm(log_s2 ~ female+age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab, data = datos2)
 reg_p4_5 <- lm(log_s2 ~ female+age+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1, data = datos2)
 
@@ -1016,11 +1016,22 @@ fwl_function(datos2,1:nrow(datos2))  #Probando la funcion
 ##Finalmente hacemos la simulación
 set.seed(10101)
 
+boot_p4_fwl <- boot(data = datos2, statistic = fwl_function, R = 1000)
+
+# Intervalo de confianza del bootstrap
+boot_ci_fwl <- boot.ci(boot_p4_fwl, type = "perc")$percent[4:5]
+
+se_boot_fwl <- sd(boot_p4_fwl$t) ## Error estandar
+
+
+coef_boot_fwl <- mean(boot_p4_fwl$t)
+
+
+print(boot_p4_fwl) ## Media de los coeficientes
 
 
 
-boot_p4_ha <- boot(data = datos2, statistic = fwl_function, R = 1000)
-boot.ci(boot_p4_ha, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+boot.ci(boot_p4_fwl, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
 
 
@@ -1032,9 +1043,9 @@ peak_age_female <-function(datos2,index){
   datos_muestra <- datos2[index, ]  # Tomar solo las filas seleccionadas por bootstrap
   datos_female <- datos_muestra[datos_muestra$female == 1, ]  # Filtrar solo mujeres
   
-  log_salario <- log(datos_female$y_ingLab_m_ha)
+  log_salario <- log(datos_female$y_ingLab_m_ha_wins)
   
-  reg_p4_peak_female <- lm(log_salario ~ age + I(age^2), data = datos_female)
+  reg_p4_peak_female <- lm(log_salario ~ age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos_female)
   
   
   b2_f <- coef(reg_p4_peak_female)[2]
@@ -1052,7 +1063,7 @@ set.seed(10101)
 boot_p4_f <- boot(data = datos2, peak_age_female, R = 1000)
 boot_p4_f
 
-boot.ci(boot_p4_f, type = c("perc","bca")) #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
+boot.ci(boot_p4_f, type = "perc") #Esta funcion me saca los intervalos de confianza al 95% bajo dos metodologias
 
 CF_female <- boot.ci(boot_p4_f, type = "perc")$percent[4:5] #Esto me saca el percentil
 edad_max_female <- boot_p4_f$t #Aqui sacamos los valores estimados de cada una de las iteraciones del bootstrap
@@ -1077,9 +1088,9 @@ peak_age_male <-function(datos2,index){
   datos_muestra <- datos2[index, ]  # Tomar solo las filas seleccionadas por bootstrap
   datos_male <- datos_muestra[datos_muestra$female == 0, ]  # Filtrar solo mujeres
   
-  log_salario <- log(datos_male$y_ingLab_m_ha)
+  log_salario <- log(datos_male$y_ingLab_m_ha_wins)
   
-  reg_p4_peak_male <- lm(log_salario ~ age + I(age^2), data = datos_male)
+  reg_p4_peak_male <- lm(log_salario ~ age+I(age^2)+maxEducLevel_im+I(maxEducLevel_im^2)+oficio+relab+estrato1+nmenores, data = datos_male)
   
   
   b2_m <- coef(reg_p4_peak_male)[2]
@@ -1153,7 +1164,6 @@ graph_male <- ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
 
 (graph_female | graph_male) + 
   plot_annotation(
-    title = "Distribución bootstrap de la edad con ingresos máximos",
     theme = theme(
       plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 15)),
       plot.tag = element_text(size = 12, face = "bold"),
