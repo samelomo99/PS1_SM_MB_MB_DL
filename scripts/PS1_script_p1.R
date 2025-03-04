@@ -1176,7 +1176,7 @@ graph_male <- ggplot(data.frame(edad_max_male), aes(x = edad_max_male)) +
 
 (graph_female | graph_male) + 
   plot_annotation(
-    title = "Distribución Bootstrap de la edad con ingresos máximos",
+    title = "Distribución bootstrap de la edad con ingresos máximos",
     theme = theme(
       plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 15)),
       plot.tag = element_text(size = 12, face = "bold"),
