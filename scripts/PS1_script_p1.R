@@ -852,37 +852,6 @@ print(tabla_ingreso)
     resumen <- dfSummary(descriptivas, style = "grid", plain.ascii = FALSE)
     print(resumen, method = "browser")   
     
-
-    # ----------------!!!!REVISAR MS SM!!! -------------------- #---- 
-###creo que esta parte no deberia ir porque en teoria ya se hizo arriba: REVISAR MS SM  
-    
-## --- Tratamniento Missing Values --- ##
-
-# -- NA / Missing Values - 2 aproximaciones -- #
-    is.na(datos$y_ingLab_m_ha)
-
-# 1. Eliminamos NA
-    datos1 <- datos %>% filter(!is.na(y_ingLab_m_ha))
-
-
-# 2. Reemplazamos NA por el valor medio
-
-    m_y_ingLab_m_ha <- mean(datos$y_ingLab_m_ha, na.rm = TRUE)
-    datos2 <- datos %>%  mutate(y_ingLab_m_ha = replace_na(y_ingLab_m_ha, m_y_ingLab_m_ha)) 
-
-# Eliminamos NA de maxEducLevel
-    datos2 <- datos2 %>% filter(!is.na(maxEducLevel))
-
-
-# Revisión rápida de los datos
-
-skim(datos1)
-skim(datos2)
-
-## TRABAJAR CON DATOS SUB
-
-
-
 # ------------------------------------------------------------- #
 ## ------------------------- PUNTO 3 ------------------------- ##
 # ------------------------------------------------------------- #
@@ -970,8 +939,6 @@ reg_p4 <- log_s2~female
 modelo_p4_1 <- lm(log_s2~female, data=datos2)
 
 stargazer(modelo_p4_1, type = "text", title = "Logaritmo del salario en funcion del genero")
-stargazer(modelo_p4_1, type = "latex", title = "Logaritmo del salario en funcion del genero")
-
 
 #### Brecha salarial condicional
 
@@ -995,10 +962,6 @@ summary(reg_p4_condicional)
 
 
 ## Teorema FWL
-
-# x1 es la variable female
-# x2 son los controles que corresponden a: edad y estrato
-
 # Estimamos la regresiones auxiliares
 
 
@@ -1241,8 +1204,7 @@ modelo6 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_i
 modelo7 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + sizeFirm, data = train) # controles secundarios
 modelo8 <- lm(log_s2 ~ age + I(age^2) + female + (age * female) + maxEducLevel_im + I(maxEducLevel_im^2) + (maxEducLevel_im * age) + oficio + estrato1 + nmenores + (nmenores * age) + sizeFirm, data = train) # interacción y forma polinomial 
 
-stargazer(modelo1, modelo2, modelo3, modelo4, modelo5, modelo6, modelo7)
-stargazer(modelo8)
+stargazer(modelo3, type = "text")
 
 
 # Performance (fuera de muestra)
