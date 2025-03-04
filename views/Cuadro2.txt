@@ -1,0 +1,15 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lccc} 
+        \toprule
+        & \multicolumn{2}{c}{Información de ingreso} & \\
+        \cmidrule(lr){2-3}
+        & Con información & Sin información & Total \\ 
+        \midrule
+        No cumple edad de pensión & 19  & 53  & 72  \\ 
+        Cumple edad de pensión    & 88  & 220 & 308 \\ 
+        \bottomrule
+    \end{tabular}
+    \caption{Frecuencias categoría cotPension (=3 pensionado) e información de ingreso}
+    \label{tab:edad_pension}
+\end{table}

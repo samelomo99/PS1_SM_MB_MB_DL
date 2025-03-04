@@ -1,0 +1,12 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcccccc} 
+        \toprule
+        & Min. & 1st Qu. & Median & Mean & 3rd Qu. & Max. \\ 
+        \midrule
+        y\_ingLab\_m\_ha\_wins & 3000 & 4667 & 5056 & 7383 & 5719 & 350583 \\ 
+        \bottomrule
+    \end{tabular}
+    \caption{Resumen estadístico de la variable ingreso Laboral winsorizada}
+    \label{tab:summary_winsorized}
+\end{table}

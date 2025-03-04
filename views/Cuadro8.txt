@@ -1,0 +1,33 @@
+\begin{table}[H]
+\centering
+\begin{tabular}{l r}
+  \hline
+  Categoría & Ingreso promedio (COP) \\ 
+  \hline
+  \textbf{Estrato socioeconómico} &  \\
+  \hspace{3mm} 1 & 4.983,58 \\ 
+  \hspace{3mm} 2 & 5.527,06 \\ 
+  \hspace{3mm} 3 & 7.083,60 \\ 
+  \hspace{3mm} 4 & 14.455,54 \\ 
+  \hspace{3mm} 5 & 16.996,23 \\ 
+  \hspace{3mm} 6 & 25.233,07 \\ 
+  \hline
+  \textbf{Nivel educativo} &  \\
+  \hspace{3mm} Ninguno & 4.599,16 \\ 
+  \hspace{3mm} Primaria incompleta & 4.758,42 \\ 
+  \hspace{3mm} Primaria completa & 4.864,37 \\ 
+  \hspace{3mm} Secundaria incompleta & 4.844,25 \\ 
+  \hspace{3mm} Secundaria completa & 5.124,18 \\ 
+  \hspace{3mm} Terciario & 10.638,21 \\ 
+  \hline
+  \textbf{Tamaño de empresa} &  \\
+  \hspace{3mm} Independiente & 4.952,90 \\ 
+  \hspace{3mm} 2-5 trabajadores & 4.910,42 \\ 
+  \hspace{3mm} 6-10 trabajadores & 5.687,93 \\ 
+  \hspace{3mm} 11-50 trabajadores & 7.522,44 \\ 
+  \hspace{3mm} Más de 50 trabajadores & 10.608,74 \\ 
+  \hline
+\end{tabular}
+\caption{Promedio de ingreso laboral por hora según estrato socioeconómico, nivel educativo y tamaño de empresa}
+\label{tab:ingreso_factores}
+\end{table}

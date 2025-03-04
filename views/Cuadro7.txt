@@ -1,0 +1,13 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+  \hline
+  Sexo & Edad media & Edad mediana & Ingreso lab. hora (media) & Ingreso lab. hora (mediana) \\ 
+  \hline
+  Mujer & 39,12 & 38,00 & 7.449,42 & 5.055,56 \\ 
+  Hombre & 39,58 & 37,00 & 7.325,71 & 5.055,56 \\ 
+  \hline
+\end{tabular}
+\caption{Promedio de ingreso laboral por hora según sexo}
+\label{tab:genero}
+\end{table}

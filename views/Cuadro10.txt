@@ -1,0 +1,15 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{cc}
+    \hline
+       \hline
+        MSE Media & MSE Mediana\\
+     
+        \hline
+        0,3366948 & 0,2848895 \\
+        \hline
+           \hline
+    \end{tabular}
+    \caption{Resultados de MSE}
+    \label{tab:mse_results}
+\end{table}

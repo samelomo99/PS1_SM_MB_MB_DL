@@ -1,0 +1,13 @@
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c c c c}
+        \hline
+        \hline
+        & Estimación & Sesgo & Error Estandar \\
+        \hline
+         & 44.63182 & -0.0002658079 & 0.3997789 \\
+        \hline
+    \end{tabular}
+    \caption{Resultados de la estimación Bootstrap }
+    \label{tab:bootstrap}
+\end{table}

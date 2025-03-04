@@ -1,0 +1,16 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c c c }
+        \hline
+        \hline
+        & AIC & BIC \\
+        \hline
+       Modelo Medias & 28.511,07 & 28.541,86 \\
+        \hline
+       Modelo Medianas & 25.788,74 & 25.819,54 \\
+        \hline
+        \hline
+    \end{tabular}
+    \caption{Valores de AIC y BIC para los modelos}
+    \label{tab:aic_bic}
+\end{table}

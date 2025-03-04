@@ -1,0 +1,25 @@
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{p{3.5cm} p{8.5cm}}
+        \hline
+        \textbf{Variable} & \textbf{Descripción} \\
+        \hline
+        y\_ingLab\_m\_ha & Ingreso laboral salarial (nominal por hora) \\
+        log\_s2 & Logaritmo del salario\\
+        sex & Sexo del individuo (1 = Hombre, 0 = Mujer) \\
+        age & Edad del individuo \\
+        maxEducLevel & Nivel máximo de educación alcanzado \\
+        nmenores & Número total de menores (a 6 años) en el hogar \\
+        H\_Head & Jefe del hogar \\
+        estrato1 & Estrato según recibo de energía \\
+        oficio & Ocupación \\
+        relab & Tipo de ocupación \\
+        formal & Tipo de empleo (1 = Formal, 0 = Informal) \\
+        sizeFirm & Tamaño de la empresa por categorías \\
+        cotPension & Cotiza en un fondo de pensión \\
+        \hline
+    \end{tabular}
+    \caption{Descripción de Variables}
+    \label{tab:variables}
+\end{table}

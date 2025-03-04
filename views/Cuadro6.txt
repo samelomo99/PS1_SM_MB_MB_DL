@@ -1,0 +1,37 @@
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lrr}
+        \toprule
+        \textbf{Variable} & \textbf{Frecuencia} & \textbf{Porcentaje} \\
+        \midrule
+        \multicolumn{3}{l}{\textbf{Sexo}} \\
+        \hspace{0.3cm} Hombre & 8.699 & 53,4\% \\
+        \hspace{0.3cm} Mujer & 7.595 & 46,6\% \\
+        \midrule
+        \multicolumn{3}{l}{\textbf{Nivel educativo}} \\
+        \hspace{0.3cm} Ninguno & 116 & 0,7\% \\
+        \hspace{0.3cm} Primaria incompleta (1-4) & 741 & 4,5\% \\
+        \hspace{0.3cm} Primaria completa (5) & 1.476 & 9,1\% \\
+        \hspace{0.3cm} Secundaria incompleta (6-10) & 1.858 & 11,4\% \\
+        \hspace{0.3cm} Secundaria completa (11) & 5.203 & 31,9\% \\
+        \hspace{0.3cm} Terciario & 6.900 & 42,3\% \\
+        \midrule
+        \multicolumn{3}{l}{\textbf{Estrato socioeconómico}} \\
+        \hspace{0.3cm} Estrato 1 & 1.735 & 10,6\% \\
+        \hspace{0.3cm} Estrato 2 & 6.801 & 41,7\% \\
+        \hspace{0.3cm} Estrato 3 & 5.895 & 36,2\% \\
+        \hspace{0.3cm} Estrato 4 & 1.120 & 6,9\% \\
+        \hspace{0.3cm} Estrato 5 & 319 & 2,0\% \\
+        \hspace{0.3cm} Estrato 6 & 424 & 2,6\% \\
+        \midrule
+        \multicolumn{3}{l}{\textbf{Tamaño de la empresa}} \\
+        \hspace{0.3cm} Trabajador independiente & 4.040 & 24,8\% \\
+        \hspace{0.3cm} 2-5 trabajadores & 3.133 & 19,2\% \\
+        \hspace{0.3cm} 6-10 trabajadores & 1.124 & 6,9\% \\
+        \hspace{0.3cm} 11-50 trabajadores & 2.048 & 12,6\% \\
+        \hspace{0.3cm} Más de 50 trabajadores & 5.949 & 36,5\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{Distribución de frecuencias por categoría}
+    \label{tab:frecuencias}
+\end{table}

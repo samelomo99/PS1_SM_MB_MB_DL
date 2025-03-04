@@ -1,0 +1,41 @@
+\begin{longtable}{lp{10cm}rr}
+    \caption{Distribuci\'on de ocupaciones} \\
+    \toprule
+    \textbf{Variable} & \textbf{Descripci\'on} & \textbf{Frecuencia} & \textbf{Porcentaje} \\
+    \midrule
+    \endfirsthead
+
+    \toprule
+    \textbf{Variable} & \textbf{Descripci\'on} & \textbf{Frecuencia} & \textbf{Porcentaje} \\
+    \midrule
+    \endhead
+
+    \midrule
+    \multicolumn{4}{r}{\textit{Contin\'ua en la siguiente p\'agina}} \\
+    \midrule
+    \endfoot
+
+    \bottomrule
+    \endlastfoot
+
+    Oficio & Vendedores (ambulantes, a domicilio, entre otros) & 1.652 & 10.10\% \\
+    Oficio & Almacenistas, auxiliares administrativos y similares & 945 & 5.80\% \\
+    Oficio & Conductores de transporte & 831 & 5.10\% \\
+    Oficio & Empleadas dom\'esticas y niñeras & 771 & 4.70\% \\
+    Oficio & Directores y gerentes & 689 & 4.20\% \\
+    Oficio & Cocineros, camareros y meseros & 682 & 4.20\% \\
+    Oficio & Comerciantes y propietarios & 661 & 4.10\% \\
+    Oficio & Seguridad (polic\'ias, vigilantes, entre otros) & 655 & 4.00\% \\
+    Oficio & Alba\'niles, carpinteros y similares & 621 & 3.80\% \\
+    Oficio & Guardianes y porteros & 607 & 3.70\% \\
+    Oficio & Docentes & 532 & 3.30\% \\
+    Oficio & T\'ecnicos en ingenier\'ia y top\'ografos & 506 & 3.10\% \\
+    Oficio & Sastres, modistas y similares & 501 & 3.10\% \\
+    Oficio & Auxiliares contables y cajeros & 481 & 3.00\% \\
+    Oficio & Estibadores y operarios de maquinaria & 465 & 2.90\% \\
+    Oficio & Gu\'ias de turismo, auxiliares de farmacia y afines & 400 & 2.50\% \\
+    Oficio & Ingenieros y arquitectos & 319 & 2.00\% \\
+    Oficio & Otros & 4.878 & 29.80\% \\
+    \textbf{Total} & & \textbf{16.294} & \textbf{100\%}
+    
+\end{longtable}

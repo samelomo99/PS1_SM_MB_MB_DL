@@ -1,0 +1,32 @@
+\begin{table}[H] 
+\centering 
+\caption{Logaritmo del salario en función de la edad} 
+\label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lcc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Variable Dependiente:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{Logaritmo del Salario} \\ 
+\\[-1.8ex] & Media & Mediana \\ 
+\hline \\[-1.8ex] 
+ $Edad$ & 0,038$^{***}$ & 0,033$^{***}$ \\ 
+  & (0,002) & (0,002) \\ 
+  & & \\ 
+ $Edad^2$ & $-$0,0004$^{***}$ & $-$0,0004$^{***}$ \\ 
+  & (0,00002) & (0,00002) \\ 
+  & & \\ 
+ $Constante$ & 7,991$^{***}$ & 8,013$^{***}$ \\ 
+  & (0,040) & (0,036) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observaciones & 16.294 & 16.294 \\ 
+R$^{2}$ & 0,044 & 0,020 \\ 
+R$^{2}$ Ajustado & 0,044 & 0,020 \\ 
+Error Estándar Residual (gl = 16.291) & 0,580 & 0,534 \\ 
+Estadístico F (gl = 2; 16.291) & 379,137$^{***}$ & 163,275$^{***}$ \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Nota:}  & \multicolumn{2}{r}{$^{*}$p$<$0,1; $^{**}$p$<$0,05; $^{***}$p$<$0,01} \\ 
+\end{tabular} 
+\end{table}  
