@@ -1,12 +1,13 @@
 # PS1_SM_MB_MB_DL
  Taller 1 - Problem Set 1: Predicting Income
 
-Aquí se explican las carpetas, lo que contienen, los detalles y como se organizan, para que las personas que entren entiendan dónde está el taller y su desarrollo.
+# Problem Set Template Repository for Big Data and Machine Learning for Applied Economics
 
-Carpetas
-document --> taller en pdf
-scripts --> código en R
-stores --> bases de datos
-views --> tablas y gráficas
+This is the template repository for the problem sets.
 
-Hola 
+The repo should contain at least four folders:
+
+- `document`: contains your final document in `pdf` format. Ideally, the document should pull figures and tables directly from the `views` folder. I've included a latex template I created for the Thesis Seminar. 
+- `scripts`: contains all your scripts
+- `stores`: contains all the data sets used. If files are "too big" for GitHub, include a document describing where people can access the data.
+- `views`: contains all figures and tables
